@@ -1,6 +1,8 @@
 import { requireAuth } from '@/lib/api/auth-guard'
 import { errorResponse, successResponse, Errors } from '@/lib/api/errors'
 import { withRateLimit, RateLimitTier } from '@/lib/api/rate-limit'
+import { withCors, OPTIONS } from '@/lib/api/cors'
+import { withLogging } from '@/lib/api/logger'
 import { validateArray, validateString, validateEnum, CHAT_ROLES } from '@/lib/api/validation'
 import { buildUserContext } from '@/features/ai/services/context'
 import { buildChatSystemPrompt } from '@/features/ai/services/prompt-builder'
@@ -8,7 +10,9 @@ import { complete } from '@/features/ai/services/ai-provider'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 
-export const POST = withRateLimit(async (request: Request) => {
+export { OPTIONS }
+
+export const POST = withLogging(withCors(withRateLimit(async (request: Request) => {
   try {
     const user = await requireAuth()
     const body = await request.json()
@@ -51,4 +55,4 @@ export const POST = withRateLimit(async (request: Request) => {
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'ai-chat', tier: RateLimitTier.ai })
+}, { routeKey: 'ai-chat', tier: RateLimitTier.ai })))

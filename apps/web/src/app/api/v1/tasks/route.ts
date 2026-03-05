@@ -2,6 +2,8 @@ import { requireAuth } from '@/lib/api/auth-guard'
 import { errorResponse, paginatedResponse, successResponse } from '@/lib/api/errors'
 import { parsePagination } from '@/lib/api/pagination'
 import { withRateLimit, RateLimitTier } from '@/lib/api/rate-limit'
+import { withCors, OPTIONS } from '@/lib/api/cors'
+import { withLogging } from '@/lib/api/logger'
 import {
   validateString, validateEnum, validateDate, validateUUID,
   TASK_STATUSES, TASK_PRIORITIES,
@@ -9,7 +11,9 @@ import {
 import { TaskService } from '@/features/tasks/services/task.service'
 import type { TaskFilters } from '@/features/tasks/types'
 
-export const GET = withRateLimit(async (request: Request) => {
+export { OPTIONS }
+
+export const GET = withLogging(withCors(withRateLimit(async (request: Request) => {
   try {
     const user = await requireAuth()
     const { searchParams } = new URL(request.url)
@@ -18,6 +22,7 @@ export const GET = withRateLimit(async (request: Request) => {
       priority: (searchParams.get('priority') as TaskFilters['priority']) ?? undefined,
       goal_id: searchParams.get('goal_id') ?? undefined,
       date: searchParams.get('date') ?? undefined,
+      search: searchParams.get('search') ?? undefined,
     }
     const pagination = parsePagination(searchParams)
     const result = await TaskService.getAll(user.id, filters, pagination)
@@ -25,9 +30,9 @@ export const GET = withRateLimit(async (request: Request) => {
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'tasks', tier: RateLimitTier.standard })
+}, { routeKey: 'tasks', tier: RateLimitTier.standard })))
 
-export const POST = withRateLimit(async (request: Request) => {
+export const POST = withLogging(withCors(withRateLimit(async (request: Request) => {
   try {
     const user = await requireAuth()
     const body = await request.json()
@@ -46,4 +51,4 @@ export const POST = withRateLimit(async (request: Request) => {
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'tasks', tier: RateLimitTier.standard })
+}, { routeKey: 'tasks', tier: RateLimitTier.standard })))

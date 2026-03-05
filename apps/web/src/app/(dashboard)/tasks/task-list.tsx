@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { cn, PRIORITY_COLOR, PRIORITY_LABEL, formatDate, isOverdue } from '@/lib/utils'
 import {
   Circle, CheckCircle2, MoreHorizontal,
-  Play, CheckCheck, RotateCcw, Trash2,
+  Play, CheckCheck, RotateCcw, Trash2, Search, Repeat,
 } from 'lucide-react'
 import type { Task, Goal, TaskStatus, Priority } from '@/lib/types'
 
@@ -245,6 +245,7 @@ function StatusIcon({ status }: { status: TaskStatus }) {
 
 export function TaskList({ initialTasks, goals }: TaskListProps) {
   const [tasks, setTasks] = useState(initialTasks)
+  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all')
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all')
   const [acting, setActing] = useState<string | null>(null)
@@ -252,9 +253,12 @@ export function TaskList({ initialTasks, goals }: TaskListProps) {
 
   const router = useRouter()
   const goalMap = new Map(goals.map((g) => [g.id, g]))
+  const searchLower = search.toLowerCase()
   const filtered = tasks.filter((t) => {
     if (statusFilter !== 'all' && t.status !== statusFilter) return false
     if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false
+    if (searchLower && !t.title.toLowerCase().includes(searchLower)
+        && !(t.description?.toLowerCase().includes(searchLower))) return false
     return true
   })
 
@@ -298,6 +302,16 @@ export function TaskList({ initialTasks, goals }: TaskListProps) {
       <div className="space-y-4">
         {/* Filters */}
         <div className="flex flex-wrap gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="input pl-9 py-1.5 text-xs w-full"
+            />
+          </div>
           <div className="flex rounded border border-border overflow-hidden">
             {STATUS_FILTERS.map(({ value, label }) => (
               <button
@@ -349,8 +363,11 @@ export function TaskList({ initialTasks, goals }: TaskListProps) {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className={cn('text-sm', done ? 'line-through text-text-tertiary' : 'text-text-primary')}>
+                    <p className={cn('text-sm flex items-center gap-1.5', done ? 'line-through text-text-tertiary' : 'text-text-primary')}>
                       {task.title}
+                      {task.is_recurring && (
+                        <Repeat className="w-3.5 h-3.5 text-primary flex-shrink-0" aria-label="Recurring task" />
+                      )}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       {task.due_date && (

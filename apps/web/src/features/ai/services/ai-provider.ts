@@ -16,8 +16,10 @@ export async function complete(options: CompletionOptions): Promise<string> {
   const provider = process.env.AI_PROVIDER ?? 'openai'
 
   if (provider === 'groq') {
+    if (!process.env.GROQ_API_KEY) throw new Error('GROQ_API_KEY is not configured')
     return completeWithGroq(options)
   }
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured')
   return completeWithOpenAI(options)
 }
 

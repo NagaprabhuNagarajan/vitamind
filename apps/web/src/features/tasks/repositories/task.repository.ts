@@ -29,6 +29,7 @@ export class TaskRepository {
     if (filters?.priority) query = query.eq('priority', filters.priority)
     if (filters?.goal_id) query = query.eq('goal_id', filters.goal_id)
     if (filters?.date) query = query.eq('due_date', filters.date)
+    if (filters?.search) query = query.ilike('title', `%${filters.search}%`)
 
     const { data, error, count } = await query
 

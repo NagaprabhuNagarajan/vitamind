@@ -27,6 +27,7 @@ export function BottomNav() {
 
   return (
     <nav
+      aria-label="Mobile navigation"
       className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden"
       style={{
         background: 'rgba(6,8,16,0.85)',
@@ -42,6 +43,8 @@ export function BottomNav() {
           <Link
             key={href}
             href={href}
+            aria-current={active ? 'page' : undefined}
+            aria-label={label}
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-all duration-150 relative',
               active ? 'text-white' : 'text-text-tertiary',
@@ -54,6 +57,7 @@ export function BottomNav() {
               />
             )}
             <Icon
+              aria-hidden="true"
               className="w-5 h-5"
               style={active ? {
                 filter: 'drop-shadow(0 0 6px rgba(99,102,241,0.7))',

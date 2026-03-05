@@ -1,6 +1,9 @@
-import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api/auth-guard'
 import { successResponse, errorResponse, Errors } from '@/lib/api/errors'
+import { withCors, OPTIONS } from '@/lib/api/cors'
+import { withLogging } from '@/lib/api/logger'
+
+export { OPTIONS }
 
 /**
  * POST /api/v1/notifications
@@ -11,11 +14,11 @@ import { successResponse, errorResponse, Errors } from '@/lib/api/errors'
  * This endpoint is intended for admin/cron use; in production the Edge Function
  * is scheduled directly via pg_cron in Supabase.
  */
-export async function POST(req: NextRequest) {
+export const POST = withLogging(withCors(async (request: Request) => {
   try {
     await requireAuth()
 
-    const { type } = await req.json()
+    const { type } = await request.json()
     if (!['tasks', 'habits'].includes(type)) {
       return errorResponse(Errors.badRequest('type must be "tasks" or "habits"'))
     }
@@ -45,4 +48,4 @@ export async function POST(req: NextRequest) {
     }
     return errorResponse(Errors.internal())
   }
-}
+}))

@@ -29,7 +29,7 @@ export function LogoutDialog({ variant = 'sidebar' }: LogoutDialogProps) {
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
+          <LogOut aria-hidden="true" className="w-4 h-4 flex-shrink-0" />
           Sign out
         </button>
       ) : (
@@ -38,7 +38,7 @@ export function LogoutDialog({ variant = 'sidebar' }: LogoutDialogProps) {
           onClick={() => setOpen(true)}
           className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium text-text-tertiary hover:text-red-400 transition-all duration-150"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut aria-hidden="true" className="w-5 h-5" />
           <span>Sign out</span>
         </button>
       )}
@@ -48,7 +48,11 @@ export function LogoutDialog({ variant = 'sidebar' }: LogoutDialogProps) {
         <div
           className="fixed inset-0 z-[999] flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="logout-dialog-title"
           onClick={() => setOpen(false)}
+          onKeyDown={e => { if (e.key === 'Escape') setOpen(false) }}
         >
           <div
             className="relative w-full max-w-sm rounded-2xl overflow-hidden p-6 space-y-5 animate-scale-in"
@@ -70,13 +74,13 @@ export function LogoutDialog({ variant = 'sidebar' }: LogoutDialogProps) {
                 background: 'rgba(239,68,68,0.12)',
                 border: '1px solid rgba(239,68,68,0.25)',
               }}>
-                <AlertTriangle className="w-6 h-6 text-red-400" />
+                <AlertTriangle aria-hidden="true" className="w-6 h-6 text-red-400" />
               </div>
             </div>
 
             {/* Text */}
             <div className="text-center space-y-1.5">
-              <h2 className="text-base font-semibold text-text-primary">Sign out?</h2>
+              <h2 id="logout-dialog-title" className="text-base font-semibold text-text-primary">Sign out?</h2>
               <p className="text-sm text-text-tertiary">You'll need to sign in again to access your account.</p>
             </div>
 

@@ -199,16 +199,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         IconButton(
           icon: const Icon(Icons.refresh_outlined, size: 20),
           color: AppColors.textSecondary,
+          tooltip: 'Refresh dashboard',
           onPressed: _load,
         ),
         IconButton(
           icon: const Icon(Icons.settings_outlined, size: 20),
           color: AppColors.textSecondary,
+          tooltip: 'Settings',
           onPressed: () => context.push(Routes.settings),
         ),
         IconButton(
           icon: const Icon(Icons.logout_outlined, size: 20),
           color: AppColors.textSecondary,
+          tooltip: 'Sign out',
           onPressed: () => _showLogoutDialog(context),
         ),
       ],
@@ -370,21 +373,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 14),
-                GestureDetector(
-                  onTap: () => context.go(Routes.planner),
-                  child: Row(
-                    children: [
-                      Text(
-                        'View full plan',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(color: AppColors.primary),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_forward,
-                          size: 14, color: AppColors.primary),
-                    ],
+                Semantics(
+                  button: true,
+                  label: 'View full plan',
+                  child: GestureDetector(
+                    onTap: () => context.go(Routes.planner),
+                    child: Row(
+                      children: [
+                        Text(
+                          'View full plan',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(color: AppColors.primary),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward,
+                            size: 14, color: AppColors.primary),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -413,7 +420,9 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Semantics(
+      label: '$label: $value',
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -459,6 +468,7 @@ class _StatCard extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

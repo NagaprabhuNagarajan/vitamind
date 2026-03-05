@@ -17,13 +17,13 @@ export function buildDailyPlanPrompt(ctx: UserContext): string {
   const taskLines = ctx.tasks
     .filter((t) => t.status !== 'completed' && t.status !== 'cancelled')
     .slice(0, 15) // cap to control tokens
-    .map((t) => `- [${t.priority.toUpperCase()}] ${t.title}${t.due_date ? ` (due ${t.due_date})` : ''}`)
+    .map((t) => `- [${(t.priority ?? 'medium').toUpperCase()}] ${t.title}${t.due_date ? ` (due ${t.due_date})` : ''}`)
     .join('\n')
 
   const goalLines = ctx.goals
     .filter((g) => !g.is_completed)
     .slice(0, 5)
-    .map((g) => `- ${g.title} (${g.progress}% done)`)
+    .map((g) => `- ${g.title} (${g.progress ?? 0}% done)`)
     .join('\n')
 
   const habitLines = ctx.habits

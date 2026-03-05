@@ -48,7 +48,8 @@ const config: Config = {
         text: {
           primary: '#F1F5F9',
           secondary: '#94A3B8',
-          tertiary: '#475569',
+          // Bumped from #475569 to meet WCAG AA 4.5:1 contrast against #060810
+          tertiary: '#8B8FA1',
           inverse: '#060810',
         },
       },

@@ -95,7 +95,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
           background: 'rgba(99,102,241,0.12)',
           border: '1px solid rgba(99,102,241,0.25)',
         }}>
-          <User className="w-5 h-5 text-primary-300" />
+          <User aria-hidden="true" className="w-5 h-5 text-primary-300" />
         </div>
         <div>
           <h2 className="text-base font-semibold text-text-primary">Profile</h2>
@@ -147,14 +147,16 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
 
       {/* Email (read-only) */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-text-secondary">
+        <label htmlFor="settings-email" className="text-xs font-medium text-text-secondary">
           Email
         </label>
         <input
+          id="settings-email"
           type="email"
           className="input opacity-60 cursor-not-allowed"
           value={profile.email}
           readOnly
+          aria-readonly="true"
           tabIndex={-1}
         />
       </div>
@@ -162,7 +164,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
       {/* Timezone */}
       <div className="space-y-1.5">
         <label htmlFor="settings-tz" className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
-          <Globe className="w-3.5 h-3.5" />
+          <Globe aria-hidden="true" className="w-3.5 h-3.5" />
           Timezone
         </label>
         <select
@@ -177,12 +179,17 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
         </select>
       </div>
 
-      {/* Status message */}
-      {message && (
-        <p className={`text-xs font-medium ${message.type === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
-          {message.text}
-        </p>
-      )}
+      {/* Status message -- aria-live so screen readers announce changes */}
+      <div aria-live="polite" aria-atomic="true">
+        {message && (
+          <p
+            className={`text-xs font-medium ${message.type === 'success' ? 'text-emerald-400' : 'text-red-400'}`}
+            role={message.type === 'error' ? 'alert' : 'status'}
+          >
+            {message.text}
+          </p>
+        )}
+      </div>
 
       {/* Save */}
       <div className="flex justify-end">

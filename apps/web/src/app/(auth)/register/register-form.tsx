@@ -29,6 +29,7 @@ export function RegisterForm({ action }: RegisterFormProps) {
           type="text"
           autoComplete="name"
           required
+          aria-required="true"
           placeholder="Alex Johnson"
           className="input"
           disabled={isPending}
@@ -45,6 +46,7 @@ export function RegisterForm({ action }: RegisterFormProps) {
           type="email"
           autoComplete="email"
           required
+          aria-required="true"
           placeholder="you@example.com"
           className="input"
           disabled={isPending}
@@ -61,11 +63,14 @@ export function RegisterForm({ action }: RegisterFormProps) {
           type="password"
           autoComplete="new-password"
           required
+          aria-required="true"
+          aria-describedby="password-hint"
           minLength={8}
           placeholder="Minimum 8 characters"
           className="input"
           disabled={isPending}
         />
+        <p id="password-hint" className="text-xs text-text-tertiary mt-1">Minimum 8 characters</p>
       </div>
 
       {/* Legal agreement notice */}

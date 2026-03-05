@@ -24,6 +24,8 @@ export interface User {
   updated_at: string
 }
 
+export type RecurrencePattern = 'daily' | 'weekly' | 'biweekly' | 'monthly'
+
 export interface Task {
   id: UUID
   user_id: UUID
@@ -34,6 +36,11 @@ export interface Task {
   status: TaskStatus
   due_date: string | null
   completed_at: string | null
+  is_recurring?: boolean
+  recurrence_pattern?: RecurrencePattern
+  recurrence_end_date?: string | null
+  parent_task_id?: string | null
+  next_occurrence?: string | null
   created_at: string
   updated_at: string
 }

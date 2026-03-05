@@ -23,13 +23,13 @@ export async function AIInsightCard({ userId }: { userId: string }) {
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{
             background: 'linear-gradient(135deg, rgba(99,102,241,0.3), rgba(168,85,247,0.3))',
           }}>
-            <Sparkles className="w-4 h-4 text-primary-300" />
+            <Sparkles aria-hidden="true" className="w-4 h-4 text-primary-300" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-text-primary">Generate today&apos;s AI plan</p>
             <p className="text-xs text-text-tertiary mt-0.5">VitaMind will analyse your tasks, goals, and habits</p>
           </div>
-          <ArrowRight className="w-4 h-4 text-text-tertiary group-hover:text-primary-300 group-hover:translate-x-0.5 transition-all duration-200" />
+          <ArrowRight aria-hidden="true" className="w-4 h-4 text-text-tertiary group-hover:text-primary-300 group-hover:translate-x-0.5 transition-all duration-200" />
         </div>
       </Link>
     )
@@ -51,7 +51,7 @@ export async function AIInsightCard({ userId }: { userId: string }) {
         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{
           background: 'linear-gradient(135deg, rgba(99,102,241,0.3), rgba(168,85,247,0.3))',
         }}>
-          <Sparkles className="w-3.5 h-3.5 text-primary-300" />
+          <Sparkles aria-hidden="true" className="w-3.5 h-3.5 text-primary-300" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{
@@ -63,7 +63,7 @@ export async function AIInsightCard({ userId }: { userId: string }) {
           </p>
           <p className="text-sm text-text-secondary leading-relaxed">{preview}&hellip;</p>
           <Link href="/planner" className="inline-flex items-center gap-1.5 mt-2.5 text-xs font-medium text-primary-400 hover:text-primary-300 transition-colors">
-            View full plan <ArrowRight className="w-3 h-3" />
+            View full plan <ArrowRight aria-hidden="true" className="w-3 h-3" />
           </Link>
         </div>
       </div>

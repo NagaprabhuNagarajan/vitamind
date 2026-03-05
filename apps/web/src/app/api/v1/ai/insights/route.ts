@@ -1,12 +1,16 @@
 import { requireAuth } from '@/lib/api/auth-guard'
 import { errorResponse, successResponse } from '@/lib/api/errors'
 import { withRateLimit, RateLimitTier } from '@/lib/api/rate-limit'
+import { withCors, OPTIONS } from '@/lib/api/cors'
+import { withLogging } from '@/lib/api/logger'
 import { buildUserContext } from '@/features/ai/services/context'
 import { buildInsightsPrompt } from '@/features/ai/services/prompt-builder'
 import { complete } from '@/features/ai/services/ai-provider'
 import { getCachedInsight, saveInsight } from '@/features/ai/services/cache'
 
-export const POST = withRateLimit(async (request: Request) => {
+export { OPTIONS }
+
+export const POST = withLogging(withCors(withRateLimit(async (request: Request) => {
   try {
     const user = await requireAuth()
     const { force = false } = await request.json().catch(() => ({}))
@@ -31,4 +35,4 @@ export const POST = withRateLimit(async (request: Request) => {
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'ai-insights', tier: RateLimitTier.ai })
+}, { routeKey: 'ai-insights', tier: RateLimitTier.ai })))

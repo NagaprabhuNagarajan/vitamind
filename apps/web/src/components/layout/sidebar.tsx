@@ -44,7 +44,7 @@ export function Sidebar() {
         borderBottom: '1px solid rgba(255,255,255,0.05)',
       }}>
         <div className="flex-shrink-0" style={{ filter: 'drop-shadow(0 0 8px rgba(99,102,241,0.5))' }}>
-          <Image src="/logo.png" alt="VitaMind" width={28} height={28} className="rounded-lg" />
+          <Image src="/logo.png" alt="VitaMind logo" width={28} height={28} className="rounded-lg" />
         </div>
         <span className="font-semibold text-sm tracking-tight" style={{
           background: 'linear-gradient(135deg, #C7D2FE, #E9D5FF)',
@@ -56,13 +56,14 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-2 space-y-0.5 relative">
+      <nav aria-label="Main navigation" className="flex-1 overflow-y-auto p-2 space-y-0.5 relative">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
               key={href}
               href={href}
+              aria-current={active ? 'page' : undefined}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 relative group',
                 active
@@ -84,7 +85,7 @@ export function Sidebar() {
                   background: 'rgba(255,255,255,0.04)',
                 }} />
               )}
-              <Icon className={cn('w-4 h-4 flex-shrink-0 relative', active ? 'text-primary-300' : '')} />
+              <Icon aria-hidden="true" className={cn('w-4 h-4 flex-shrink-0 relative', active ? 'text-primary-300' : '')} />
               <span className="relative">{label}</span>
               {active && (
                 <div className="ml-auto w-1 h-1 rounded-full bg-primary-400" />

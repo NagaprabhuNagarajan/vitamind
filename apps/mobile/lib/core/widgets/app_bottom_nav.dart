@@ -7,6 +7,14 @@ class AppBottomNav extends StatelessWidget {
   final int currentIndex;
   const AppBottomNav({super.key, required this.currentIndex});
 
+  void _showMoreSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _MoreBottomSheet(parentContext: context),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -17,7 +25,7 @@ class AppBottomNav extends StatelessWidget {
         ),
       ),
       child: NavigationBar(
-        selectedIndex: currentIndex,
+        selectedIndex: currentIndex.clamp(0, 4),
         onDestinationSelected: (i) {
           switch (i) {
             case 0:
@@ -29,7 +37,7 @@ class AppBottomNav extends StatelessWidget {
             case 3:
               context.go(Routes.goals);
             case 4:
-              context.go(Routes.ai);
+              _showMoreSheet(context);
           }
         },
         destinations: const [
@@ -54,12 +62,152 @@ class AppBottomNav extends StatelessWidget {
             label: 'Goals',
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_awesome_outlined),
-            selectedIcon: Icon(Icons.auto_awesome_rounded),
-            label: 'AI',
+            icon: Icon(Icons.more_horiz_rounded),
+            selectedIcon: Icon(Icons.more_horiz_rounded),
+            label: 'More',
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Bottom sheet shown when the "More" tab is tapped.  Provides access to
+/// AI Assistant, Planner, and Settings — features that were moved out of
+/// the main navigation bar to keep it uncluttered at five items max.
+class _MoreBottomSheet extends StatelessWidget {
+  final BuildContext parentContext;
+  const _MoreBottomSheet({required this.parentContext});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(
+          top: BorderSide(color: AppColors.border),
+          left: BorderSide(color: AppColors.border),
+          right: BorderSide(color: AppColors.border),
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textTertiary.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            _MoreTile(
+              icon: Icons.auto_awesome_outlined,
+              label: 'AI Assistant',
+              subtitle: 'Chat with your life coach',
+              onTap: () {
+                Navigator.of(context).pop();
+                parentContext.go(Routes.ai);
+              },
+            ),
+            _MoreTile(
+              icon: Icons.calendar_today_outlined,
+              label: 'Planner',
+              subtitle: 'AI-generated daily plan',
+              onTap: () {
+                Navigator.of(context).pop();
+                parentContext.go(Routes.planner);
+              },
+            ),
+            _MoreTile(
+              icon: Icons.settings_outlined,
+              label: 'Settings',
+              subtitle: 'Profile, account, preferences',
+              onTap: () {
+                Navigator.of(context).pop();
+                parentContext.go(Routes.settings);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A single row inside the "More" bottom sheet.
+class _MoreTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _MoreTile({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '$label: $subtitle',
+      child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 20, color: AppColors.primary),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: AppColors.textTertiary,
+              semanticLabel: 'Navigate',
+            ),
+          ],
+        ),
+      ),
+    ),
     );
   }
 }

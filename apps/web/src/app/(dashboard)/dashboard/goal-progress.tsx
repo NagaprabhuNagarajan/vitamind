@@ -24,7 +24,14 @@ export function GoalProgress({ goals }: GoalProgressProps) {
               <span className="text-sm text-text-primary truncate max-w-[200px]">{goal.title}</span>
               <span className="text-xs text-text-tertiary font-medium ml-2">{goal.progress}%</span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-surface-tertiary overflow-hidden">
+            <div
+              className="w-full h-1.5 rounded-full bg-surface-tertiary overflow-hidden"
+              role="progressbar"
+              aria-valuenow={goal.progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${goal.title} progress`}
+            >
               <div
                 className="h-full rounded-full bg-secondary transition-all duration-500"
                 style={{ width: `${goal.progress}%` }}

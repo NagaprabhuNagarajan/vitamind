@@ -6,7 +6,7 @@
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 38    | 38        | 0           | 0       |
+| 58    | 58        | 0           | 0       |
 
 ---
 
@@ -331,17 +331,173 @@
 
 ---
 
+## Phase 17 -- Security & CORS
+
+| Task | Status |
+|------|--------|
+| 17A -- Security headers (HSTS, CSP, X-Frame-Options, etc.) | Done |
+| 17B -- CORS middleware for mobile API access | Done |
+| 17C -- Structured request logging (JSON, duration, user ID) | Done |
+
+**New files:**
+- `apps/web/src/lib/api/cors.ts` -- `withCors()` wrapper, origin validation, OPTIONS preflight
+- `apps/web/src/lib/api/logger.ts` -- `withLogging()` wrapper, JSON structured logs
+
+**Modified:**
+- `apps/web/next.config.ts` -- security headers + CSP
+- All 13 API route files -- wrapped with `withLogging(withCors(withRateLimit(...)))` + `OPTIONS` export
+
+---
+
+## Phase 18 -- Loading Skeletons
+
+| Task | Status |
+|------|--------|
+| 18A -- Shared Skeleton component | Done |
+| 18B -- Loading pages for all 7 dashboard routes | Done |
+
+**New files:**
+- `apps/web/src/components/ui/skeleton.tsx` -- `Skeleton`, `PageHeaderSkeleton`, `CardSkeleton`
+- `apps/web/src/app/(dashboard)/dashboard/loading.tsx`
+- `apps/web/src/app/(dashboard)/tasks/loading.tsx`
+- `apps/web/src/app/(dashboard)/goals/loading.tsx`
+- `apps/web/src/app/(dashboard)/habits/loading.tsx`
+- `apps/web/src/app/(dashboard)/planner/loading.tsx`
+- `apps/web/src/app/(dashboard)/ai/loading.tsx`
+- `apps/web/src/app/(dashboard)/settings/loading.tsx`
+
+---
+
+## Phase 19 -- High Priority Improvements
+
+| Task | Status |
+|------|--------|
+| 19A -- Users table RLS policies (DELETE policy) | Done |
+| 19B -- GDPR data export endpoint (GET /api/v1/user/export) | Done |
+| 19C -- Mobile bottom nav "More" menu (AI, Planner, Settings) | Done |
+| 19D -- Task search filter (web client + API + mobile) | Done |
+
+**New files:**
+- `backend/supabase/migrations/003_users_rls.sql` -- DELETE policy for users table
+- `apps/web/src/app/api/v1/user/export/route.ts` -- full data export (tasks, goals, habits, logs, insights)
+
+**Modified:**
+- `apps/mobile/lib/core/widgets/app_bottom_nav.dart` -- 4 tabs + "More" bottom sheet
+- `apps/web/src/app/(dashboard)/tasks/task-list.tsx` -- search input + filter by title/description
+- `apps/web/src/features/tasks/repositories/task.repository.ts` -- `ilike` search on title
+- `apps/web/src/app/api/v1/tasks/route.ts` -- `search` query parameter
+- `apps/mobile/lib/features/tasks/presentation/screens/tasks_screen.dart` -- search TextField
+
+---
+
+## Phase 20 -- E2E Tests
+
+| Task | Status |
+|------|--------|
+| 20A -- Playwright config + auth/navigation/tasks/health tests (web) | Done |
+| 20B -- Flutter integration tests (splash, login, register, bottom nav, navigation) | Done |
+
+**New files (web):**
+- `apps/web/playwright.config.ts` -- 3 browsers, 30s timeout, CI retries
+- `apps/web/e2e/auth.spec.ts` -- 10 auth flow tests
+- `apps/web/e2e/navigation.spec.ts` -- 9 navigation tests (sidebar, responsive, branding)
+- `apps/web/e2e/tasks.spec.ts` -- 4 tasks page tests
+- `apps/web/e2e/health.spec.ts` -- 4 health endpoint tests
+
+**New files (mobile):**
+- `apps/mobile/integration_test/app_test.dart` -- 14 integration tests (splash, login, register, nav)
+- `apps/mobile/integration_test/navigation_test.dart` -- 8 navigation tests (More sheet, tiles)
+
+---
+
+## Phase 21 -- Recurring Tasks
+
+| Task | Status |
+|------|--------|
+| 21A -- Database schema (recurrence_pattern enum, recurring columns) | Done |
+| 21B -- Supabase edge function (cron-based spawn-recurring) | Done |
+| 21C -- Web UI (recurring toggle, frequency dropdown, end date) | Done |
+| 21D -- Mobile model updates (RecurrencePattern enum, Task fields) | Done |
+
+**New files:**
+- `backend/supabase/migrations/004_recurring_tasks.sql` -- recurrence_pattern enum, is_recurring, recurrence_pattern, recurrence_end_date, parent_task_id, next_occurrence
+- `backend/supabase/functions/spawn-recurring/index.ts` -- cron edge function for spawning task instances
+
+**Modified:**
+- `apps/web/src/lib/types/index.ts` -- RecurrencePattern type + recurring fields on Task
+- `apps/web/src/app/(dashboard)/tasks/task-create-button.tsx` -- recurring toggle UI
+- `apps/mobile/lib/features/tasks/data/task_service.dart` -- RecurrencePattern enum + Task fields
+
+---
+
+## Phase 22 -- Calendar Integration (Google Calendar)
+
+| Task | Status |
+|------|--------|
+| 22A -- Database schema (calendar_connections table) | Done |
+| 22B -- OAuth connect/disconnect API routes | Done |
+| 22C -- Calendar sync API (push tasks to Google Calendar) | Done |
+| 22D -- Calendar settings UI section | Done |
+
+**New files:**
+- `backend/supabase/migrations/005_calendar_integration.sql` -- calendar_connections table + RLS
+- `apps/web/src/app/api/v1/calendar/connect/route.ts` -- OAuth initiation
+- `apps/web/src/app/api/v1/calendar/disconnect/route.ts` -- revoke + delete connection
+- `apps/web/src/app/api/v1/calendar/sync/route.ts` -- push tasks to Google Calendar
+- `apps/web/src/app/api/v1/calendar/status/route.ts` -- connection status check
+- `apps/web/src/app/(dashboard)/settings/calendar-section.tsx` -- connect/disconnect UI
+
+---
+
+## Phase 23 -- Weekly Email Reports
+
+| Task | Status |
+|------|--------|
+| 23A -- Database schema (email_preferences table) | Done |
+| 23B -- Supabase edge function (weekly-report with Resend) | Done |
+| 23C -- Notification preferences UI | Done |
+
+**New files:**
+- `backend/supabase/migrations/006_email_preferences.sql` -- email_preferences table + RLS
+- `backend/supabase/functions/weekly-report/index.ts` -- cron function, HTML email via Resend
+- `apps/web/src/app/(dashboard)/settings/notification-section.tsx` -- email preferences UI
+
+---
+
+## Phase 24 -- Accessibility Audit (WCAG 2.1 AA)
+
+| Task | Status |
+|------|--------|
+| 24A -- Skip navigation + landmark roles (web) | Done |
+| 24B -- ARIA labels, aria-current, aria-hidden on decorative elements | Done |
+| 24C -- Focus indicators + keyboard navigation | Done |
+| 24D -- Form accessibility (labels, error messages) | Done |
+| 24E -- Flutter Semantics widgets (mobile) | Done |
+
+**Modified (web):**
+- `apps/web/src/app/(dashboard)/layout.tsx` -- skip-to-content link, aria-hidden on orbs, id="main-content", role="main"
+- `apps/web/src/components/layout/sidebar.tsx` -- aria-label="Main navigation", aria-current="page", aria-hidden on icons, alt text on logo
+- `apps/web/src/components/layout/bottom-nav.tsx` -- aria labels on nav items
+
+---
+
+## Phase 25 -- CI Pipeline
+
+| Task | Status |
+|------|--------|
+| 25A -- GitHub Actions workflow for web (lint, test, typecheck, build) | Done |
+| 25B -- GitHub Actions workflow for mobile (analyze, test, build Android + iOS) | Done |
+
+**New files:**
+- `.github/workflows/ci-web.yml` -- 4 jobs: lint, unit tests, typecheck, build (on PR/push to main, path-filtered)
+- `.github/workflows/ci-mobile.yml` -- 4 jobs: analyze, unit tests, build Android, build iOS (on PR/push to main, path-filtered)
+
+---
+
 ## Remaining Work (Backlog)
 
-These items are not blockers but would improve the product for growth:
+All planned items complete. Future improvements:
 
-- **Calendar integration** -- Google Calendar / Apple Calendar sync
-- **Weekly email reports** -- scheduled digest of productivity stats
-- **Web AI chat page** -- streaming responses, markdown rendering
-- **Mobile planner / AI screens** -- Flutter UI for daily plan + chat
-- **Search & filtering** -- full-text search across tasks/goals/habits
-- **Recurring tasks** -- auto-generate tasks on schedule
-- **Data export** -- CSV/JSON export for user data (GDPR right to portability)
-- **Accessibility audit** -- WCAG 2.1 AA compliance pass
-- **E2E tests** -- Playwright (web) + integration_test (mobile)
-- **CI pipeline** -- GitHub Actions for lint, test, build on PR
+- **E2E tests in CI** -- Playwright in GitHub Actions with test Supabase instance
+- **Preview deployments** -- Vercel preview on PR
+- **Release automation** -- semantic versioning + changelog generation

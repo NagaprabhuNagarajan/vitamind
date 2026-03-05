@@ -4,6 +4,7 @@ import '../../../core/cache/cache_service.dart';
 
 enum TaskPriority { low, medium, high, urgent }
 enum TaskStatus { pending, inProgress, completed }
+enum RecurrencePattern { daily, weekly, biweekly, monthly }
 
 class Task {
   final String id;
@@ -13,6 +14,11 @@ class Task {
   final TaskStatus status;
   final String? dueDate;
   final String? goalId;
+  final bool isRecurring;
+  final RecurrencePattern? recurrencePattern;
+  final String? recurrenceEndDate;
+  final String? parentTaskId;
+  final String? nextOccurrence;
   final DateTime createdAt;
 
   const Task({
@@ -23,6 +29,11 @@ class Task {
     required this.status,
     this.dueDate,
     this.goalId,
+    this.isRecurring = false,
+    this.recurrencePattern,
+    this.recurrenceEndDate,
+    this.parentTaskId,
+    this.nextOccurrence,
     required this.createdAt,
   });
 
@@ -35,6 +46,11 @@ class Task {
       status: _parseStatus(m['status'] as String? ?? 'todo'),
       dueDate: m['due_date'] as String?,
       goalId: m['goal_id'] as String?,
+      isRecurring: m['is_recurring'] as bool? ?? false,
+      recurrencePattern: _parseRecurrencePattern(m['recurrence_pattern'] as String?),
+      recurrenceEndDate: m['recurrence_end_date'] as String?,
+      parentTaskId: m['parent_task_id'] as String?,
+      nextOccurrence: m['next_occurrence'] as String?,
       createdAt: DateTime.parse(m['created_at'] as String),
     );
   }
@@ -47,6 +63,11 @@ class Task {
         status: status ?? this.status,
         dueDate: dueDate,
         goalId: goalId,
+        isRecurring: isRecurring,
+        recurrencePattern: recurrencePattern,
+        recurrenceEndDate: recurrenceEndDate,
+        parentTaskId: parentTaskId,
+        nextOccurrence: nextOccurrence,
         createdAt: createdAt,
       );
 
@@ -58,6 +79,11 @@ class Task {
         'status': _statusToDb(status),
         'due_date': dueDate,
         'goal_id': goalId,
+        'is_recurring': isRecurring,
+        'recurrence_pattern': recurrencePattern?.name,
+        'recurrence_end_date': recurrenceEndDate,
+        'parent_task_id': parentTaskId,
+        'next_occurrence': nextOccurrence,
         'created_at': createdAt.toIso8601String(),
       };
 
@@ -93,6 +119,22 @@ class Task {
         return 'completed';
       case TaskStatus.pending:
         return 'todo';
+    }
+  }
+
+  static RecurrencePattern? _parseRecurrencePattern(String? v) {
+    if (v == null) return null;
+    switch (v) {
+      case 'daily':
+        return RecurrencePattern.daily;
+      case 'weekly':
+        return RecurrencePattern.weekly;
+      case 'biweekly':
+        return RecurrencePattern.biweekly;
+      case 'monthly':
+        return RecurrencePattern.monthly;
+      default:
+        return null;
     }
   }
 }
@@ -220,6 +262,9 @@ class TaskService {
     TaskPriority priority = TaskPriority.medium,
     String? dueDate,
     String? goalId,
+    bool isRecurring = false,
+    RecurrencePattern? recurrencePattern,
+    String? recurrenceEndDate,
   }) async {
     await _supabase.from('tasks').insert({
       'user_id': userId,
@@ -229,6 +274,13 @@ class TaskService {
       'status': Task._statusToDb(TaskStatus.pending),
       if (dueDate != null) 'due_date': dueDate,
       if (goalId != null) 'goal_id': goalId,
+      'is_recurring': isRecurring,
+      if (isRecurring && recurrencePattern != null)
+        'recurrence_pattern': recurrencePattern.name,
+      if (isRecurring && recurrenceEndDate != null)
+        'recurrence_end_date': recurrenceEndDate,
+      // next_occurrence starts at due_date so the cron function knows when to spawn
+      if (isRecurring && dueDate != null) 'next_occurrence': dueDate,
     });
   }
 

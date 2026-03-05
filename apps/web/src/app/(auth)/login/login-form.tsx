@@ -28,6 +28,7 @@ export function LoginForm({ action }: LoginFormProps) {
           type="email"
           autoComplete="email"
           required
+          aria-required="true"
           placeholder="you@example.com"
           className="input"
           disabled={isPending}
@@ -44,6 +45,7 @@ export function LoginForm({ action }: LoginFormProps) {
           type="password"
           autoComplete="current-password"
           required
+          aria-required="true"
           placeholder="••••••••"
           className="input"
           disabled={isPending}

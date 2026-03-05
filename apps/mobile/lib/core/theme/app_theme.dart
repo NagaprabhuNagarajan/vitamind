@@ -17,7 +17,8 @@ class AppColors {
   // Text
   static const Color textPrimary = Color(0xFFF1F5F9);
   static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color textTertiary = Color(0xFF475569);
+  // Bumped from 0xFF475569 to meet WCAG AA 4.5:1 contrast against dark bg
+  static const Color textTertiary = Color(0xFF8B8FA1);
 
   // Borders (translucent white)
   static const Color border = Color(0x14FFFFFF);       // 8% white

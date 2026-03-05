@@ -41,7 +41,7 @@ export function HabitCheckins({ habits }: HabitCheckinsProps) {
       <div className="p-4 border-b border-border">
         <h2 className="font-semibold text-text-primary">Today&apos;s habits</h2>
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-y divide-border" aria-live="polite">
         {localHabits.map(({ habit, streak, todayLog }) => {
           const done = todayLog?.status === 'completed'
           return (
@@ -58,7 +58,7 @@ export function HabitCheckins({ habits }: HabitCheckinsProps) {
                 aria-label={done ? `${habit.title} done` : `Mark ${habit.title} done`}
               >
                 {done && (
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg aria-hidden="true" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 )}
@@ -68,7 +68,7 @@ export function HabitCheckins({ habits }: HabitCheckinsProps) {
               </span>
               {streak > 0 && (
                 <span className="flex items-center gap-1 text-xs text-orange-500 font-medium">
-                  <Flame className="w-3 h-3" />
+                  <Flame aria-hidden="true" className="w-3 h-3" />
                   {streak}
                 </span>
               )}

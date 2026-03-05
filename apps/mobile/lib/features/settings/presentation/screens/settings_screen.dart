@@ -11,6 +11,8 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../widgets/settings_tile.dart';
 import '../widgets/delete_confirmation_sheet.dart';
 import '../widgets/profile_card.dart';
+import '../widgets/calendar_settings_tile.dart';
+import '../widgets/notification_toggle.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -28,6 +30,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _email = '';
   String? _avatarUrl;
   String _originalName = '';
+
+  // Notification preferences
+  bool _weeklyReport = true;
+  bool _dailyReminder = false;
 
   @override
   void initState() {
@@ -55,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final row = await Supabase.instance.client
           .from('users')
-          .select('name, avatar_url')
+          .select('name, avatar_url, email_weekly_report, email_daily_reminder')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -68,6 +74,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _originalName = name;
           _nameController.text = name;
           _avatarUrl = (row?['avatar_url'] as String?) ?? _avatarUrl;
+          _weeklyReport = (row?['email_weekly_report'] as bool?) ?? true;
+          _dailyReminder = (row?['email_daily_reminder'] as bool?) ?? false;
         });
       }
     } catch (_) {
@@ -108,6 +116,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _statusMessage = 'Failed to save. Please try again.';
           _isError = true;
         });
+      }
+    }
+  }
+
+  /// Persists a single notification preference toggle to the database.
+  Future<void> _updateNotificationPref(String field, bool value) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      await Supabase.instance.client
+          .from('users')
+          .update({field: value})
+          .eq('id', userId);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update preference.')),
+        );
       }
     }
   }
@@ -194,6 +221,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 28),
 
+          // Notifications
+          const SettingsSectionHeader(
+            icon: Icons.notifications_outlined,
+            title: 'Notifications',
+            color: AppColors.secondary,
+          ),
+          const SizedBox(height: 12),
+          GlassCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                NotificationToggle(
+                  icon: Icons.mail_outline_rounded,
+                  title: 'Weekly productivity report',
+                  subtitle: 'Summary of tasks, habits, and goals every Sunday',
+                  value: _weeklyReport,
+                  onChanged: (val) {
+                    setState(() => _weeklyReport = val);
+                    _updateNotificationPref('email_weekly_report', val);
+                  },
+                ),
+                const Divider(height: 1, color: AppColors.border),
+                NotificationToggle(
+                  icon: Icons.wb_sunny_outlined,
+                  title: 'Daily task reminder',
+                  subtitle: 'Morning email with your priorities for the day',
+                  value: _dailyReminder,
+                  onChanged: (val) {
+                    setState(() => _dailyReminder = val);
+                    _updateNotificationPref('email_daily_reminder', val);
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // Calendar Integration
+          const SettingsSectionHeader(
+            icon: Icons.calendar_month_rounded,
+            title: 'Integrations',
+            color: AppColors.primary,
+          ),
+          const SizedBox(height: 12),
+          const CalendarSettingsTile(),
+
+          const SizedBox(height: 28),
+
           // Account
           const SettingsSectionHeader(
             icon: Icons.shield_outlined,
@@ -248,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const AppBottomNav(currentIndex: -1),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 4),
     );
   }
 }

@@ -1,6 +1,8 @@
 import { requireAuth } from '@/lib/api/auth-guard'
 import { errorResponse, successResponse } from '@/lib/api/errors'
 import { withRateLimit, RateLimitTier } from '@/lib/api/rate-limit'
+import { withCors, OPTIONS } from '@/lib/api/cors'
+import { withLogging } from '@/lib/api/logger'
 import {
   validateString, validateEnum, validateDate, validateUUID,
   TASK_STATUSES, TASK_PRIORITIES,
@@ -9,7 +11,9 @@ import { TaskService } from '@/features/tasks/services/task.service'
 
 interface Params { params: Promise<{ id: string }> }
 
-export const GET = withRateLimit(async (_req: Request, context?: { params: Promise<Record<string, string>> }) => {
+export { OPTIONS }
+
+export const GET = withLogging(withCors(withRateLimit(async (_req: Request, context?: { params: Promise<Record<string, string>> }) => {
   try {
     const user = await requireAuth()
     const { id } = await (context as Params).params
@@ -18,9 +22,9 @@ export const GET = withRateLimit(async (_req: Request, context?: { params: Promi
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'tasks', tier: RateLimitTier.standard })
+}, { routeKey: 'tasks', tier: RateLimitTier.standard })))
 
-export const PUT = withRateLimit(async (request: Request, context?: { params: Promise<Record<string, string>> }) => {
+export const PUT = withLogging(withCors(withRateLimit(async (request: Request, context?: { params: Promise<Record<string, string>> }) => {
   try {
     const user = await requireAuth()
     const { id } = await (context as Params).params
@@ -40,9 +44,9 @@ export const PUT = withRateLimit(async (request: Request, context?: { params: Pr
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'tasks', tier: RateLimitTier.standard })
+}, { routeKey: 'tasks', tier: RateLimitTier.standard })))
 
-export const DELETE = withRateLimit(async (_req: Request, context?: { params: Promise<Record<string, string>> }) => {
+export const DELETE = withLogging(withCors(withRateLimit(async (_req: Request, context?: { params: Promise<Record<string, string>> }) => {
   try {
     const user = await requireAuth()
     const { id } = await (context as Params).params
@@ -51,4 +55,4 @@ export const DELETE = withRateLimit(async (_req: Request, context?: { params: Pr
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'tasks', tier: RateLimitTier.standard })
+}, { routeKey: 'tasks', tier: RateLimitTier.standard })))

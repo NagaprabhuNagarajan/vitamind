@@ -7,6 +7,10 @@ export interface CreateTaskInput {
   priority: import('@/lib/types').Priority
   due_date?: string
   goal_id?: string
+  is_recurring?: boolean
+  recurrence_pattern?: import('@/lib/types').RecurrencePattern
+  recurrence_end_date?: string | null
+  next_occurrence?: string | null
 }
 
 export interface UpdateTaskInput {
@@ -23,4 +27,5 @@ export interface TaskFilters {
   priority?: import('@/lib/types').Priority
   goal_id?: string
   date?: string // YYYY-MM-DD
+  search?: string // partial title match (case-insensitive)
 }

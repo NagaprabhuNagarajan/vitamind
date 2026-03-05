@@ -44,6 +44,17 @@
     background: rgba(99, 102, 241, 0.35);
     color: #F1F5F9;
   }
+
+  /* Global focus-visible indicator for keyboard navigation (WCAG 2.1 AA) */
+  :focus-visible {
+    outline: 2px solid #6366F1;
+    outline-offset: 2px;
+  }
+
+  /* Remove default focus outline — only show for keyboard users via :focus-visible */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 @layer components {
@@ -159,7 +170,6 @@
     @apply w-full rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary transition-all duration-200;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
-    outline: none;
   }
   .input:focus {
     background: rgba(255,255,255,0.07);

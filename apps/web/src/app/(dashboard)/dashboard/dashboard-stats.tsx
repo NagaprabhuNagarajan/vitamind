@@ -65,14 +65,16 @@ export function DashboardStats({
           key={label}
           className="card p-4 group cursor-default animate-fade-in"
           style={{ animationDelay: `${i * 0.07}s` }}
+          role="group"
+          aria-label={`${label}: ${value}, ${sub}`}
         >
           {/* Top row */}
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium text-text-tertiary uppercase tracking-widest">{label}</span>
             <div className="icon-box w-8 h-8 rounded-lg" style={{ background: iconBg }}>
-              <Icon className="w-4 h-4" style={{ color: 'transparent', stroke: 'url(#grad-' + i + ')' }} />
+              <Icon aria-hidden="true" className="w-4 h-4" style={{ color: 'transparent', stroke: 'url(#grad-' + i + ')' }} />
               {/* Fallback colored icon */}
-              <Icon className="w-4 h-4 opacity-0 absolute" />
+              <Icon aria-hidden="true" className="w-4 h-4 opacity-0 absolute" />
             </div>
           </div>
 

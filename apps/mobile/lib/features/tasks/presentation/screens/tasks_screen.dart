@@ -24,8 +24,22 @@ class TasksScreen extends StatelessWidget {
   }
 }
 
-class _TasksView extends StatelessWidget {
+class _TasksView extends StatefulWidget {
   const _TasksView();
+
+  @override
+  State<_TasksView> createState() => _TasksViewState();
+}
+
+class _TasksViewState extends State<_TasksView> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +57,7 @@ class _TasksView extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.add_rounded),
               color: AppColors.primary,
+              tooltip: 'Create new task',
               style: IconButton.styleFrom(
                 backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                 shape: RoundedRectangleBorder(
@@ -66,6 +81,57 @@ class _TasksView extends StatelessWidget {
         },
         child: Column(
           children: [
+            // Search field
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) => setState(() => _searchQuery = value),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Search tasks...',
+                  hintStyle: const TextStyle(
+                    color: AppColors.textTertiary,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    size: 20,
+                    color: AppColors.textTertiary,
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          tooltip: 'Clear search',
+                          icon: const Icon(Icons.close_rounded,
+                              size: 18, color: AppColors.textTertiary),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: AppColors.surfaceEl,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                ),
+              ),
+            ),
             _FilterBar(),
             Expanded(
               child: BlocBuilder<TasksBloc, TasksState>(
@@ -77,12 +143,15 @@ class _TasksView extends StatelessWidget {
                             color: AppColors.primary));
                   }
                   if (state is TasksSuccess) {
-                    final tasks = _filteredTasks(state.tasks, state.filter);
+                    final tasks = _filteredTasks(
+                        state.tasks, state.filter, _searchQuery);
                     if (tasks.isEmpty) {
                       return _EmptyState(
-                        message: state.filter == null
-                            ? 'No tasks yet. Tap + to create one.'
-                            : 'No tasks match this filter.',
+                        message: _searchQuery.isNotEmpty
+                            ? 'No tasks match your search.'
+                            : state.filter == null
+                                ? 'No tasks yet. Tap + to create one.'
+                                : 'No tasks match this filter.',
                       );
                     }
                     return ListView.separated(
@@ -103,18 +172,33 @@ class _TasksView extends StatelessWidget {
     );
   }
 
-  List<Task> _filteredTasks(List<Task> tasks, String? filter) {
-    if (filter == null) return tasks;
-    switch (filter) {
-      case 'pending':
-        return tasks.where((t) => t.status == TaskStatus.pending).toList();
-      case 'in_progress':
-        return tasks.where((t) => t.status == TaskStatus.inProgress).toList();
-      case 'completed':
-        return tasks.where((t) => t.status == TaskStatus.completed).toList();
-      default:
-        return tasks;
+  List<Task> _filteredTasks(List<Task> tasks, String? filter, String search) {
+    var result = tasks;
+
+    // Apply status filter
+    if (filter != null) {
+      switch (filter) {
+        case 'pending':
+          result =
+              result.where((t) => t.status == TaskStatus.pending).toList();
+        case 'in_progress':
+          result =
+              result.where((t) => t.status == TaskStatus.inProgress).toList();
+        case 'completed':
+          result =
+              result.where((t) => t.status == TaskStatus.completed).toList();
+      }
     }
+
+    // Apply search filter on title (case-insensitive)
+    if (search.isNotEmpty) {
+      final query = search.toLowerCase();
+      result = result
+          .where((t) => t.title.toLowerCase().contains(query))
+          .toList();
+    }
+
+    return result;
   }
 
   void _showCreateDialog(BuildContext context) {
@@ -234,18 +318,32 @@ class _TaskTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: isDone
-                        ? AppColors.textTertiary
-                        : AppColors.textPrimary,
-                    decoration:
-                        isDone ? TextDecoration.lineThrough : null,
-                    decorationColor: AppColors.textTertiary,
-                  ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        task.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDone
+                              ? AppColors.textTertiary
+                              : AppColors.textPrimary,
+                          decoration:
+                              isDone ? TextDecoration.lineThrough : null,
+                          decorationColor: AppColors.textTertiary,
+                        ),
+                      ),
+                    ),
+                    if (task.isRecurring) ...[
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.repeat_rounded,
+                        size: 14,
+                        color: AppColors.primary.withValues(alpha: 0.8),
+                      ),
+                    ],
+                  ],
                 ),
                 if (task.dueDate != null) ...[
                   const SizedBox(height: 3),
@@ -287,8 +385,15 @@ class _StatusCircle extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDone = task.status == TaskStatus.completed;
     final isInProgress = task.status == TaskStatus.inProgress;
+    final statusLabel = isDone
+        ? 'Completed'
+        : isInProgress
+            ? 'In progress'
+            : 'To do';
 
-    return AnimatedContainer(
+    return Semantics(
+      label: 'Status: $statusLabel',
+      child: AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: 24,
       height: 24,
@@ -322,6 +427,7 @@ class _StatusCircle extends StatelessWidget {
                   ),
                 )
               : null,
+    ),
     );
   }
 }
@@ -337,6 +443,7 @@ class _TaskMenu extends StatelessWidget {
     final isDone = task.status == TaskStatus.completed;
 
     return PopupMenuButton<String>(
+      tooltip: 'Task actions',
       icon: const Icon(Icons.more_vert_rounded,
           size: 18, color: AppColors.textTertiary),
       color: AppColors.surfaceEl,
@@ -498,7 +605,11 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = value == current;
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'Filter: $label',
+      child: GestureDetector(
       onTap: () =>
           context.read<TasksBloc>().add(TaskFilterChanged(value)),
       child: AnimatedContainer(
@@ -525,6 +636,7 @@ class _FilterChip extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }
@@ -542,7 +654,9 @@ class _PriorityBadge extends StatelessWidget {
       TaskPriority.medium => 'Med',
       TaskPriority.low => 'Low',
     };
-    return Container(
+    return Semantics(
+      label: 'Priority: $label',
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
@@ -557,6 +671,7 @@ class _PriorityBadge extends StatelessWidget {
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3),
       ),
+    ),
     );
   }
 }
@@ -576,6 +691,9 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
   final _descCtrl = TextEditingController();
   TaskPriority _priority = TaskPriority.medium;
   String? _dueDate;
+  bool _isRecurring = false;
+  RecurrencePattern _recurrencePattern = RecurrencePattern.weekly;
+  String? _recurrenceEndDate;
 
   @override
   void dispose() {
@@ -593,6 +711,9 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
               : _descCtrl.text.trim(),
           priority: _priority,
           dueDate: _dueDate,
+          isRecurring: _isRecurring,
+          recurrencePattern: _isRecurring ? _recurrencePattern : null,
+          recurrenceEndDate: _isRecurring ? _recurrenceEndDate : null,
         ));
     Navigator.pop(context);
   }
@@ -684,6 +805,70 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            // Recurring toggle
+            Row(
+              children: [
+                const Icon(Icons.repeat_rounded,
+                    size: 18, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                const Text('Repeat',
+                    style: TextStyle(
+                        color: AppColors.textPrimary, fontSize: 14)),
+                const Spacer(),
+                Switch.adaptive(
+                  value: _isRecurring,
+                  activeColor: AppColors.primary,
+                  onChanged: (v) => setState(() => _isRecurring = v),
+                ),
+              ],
+            ),
+            if (_isRecurring) ...[
+              const SizedBox(height: 8),
+              DropdownButtonFormField<RecurrencePattern>(
+                value: _recurrencePattern,
+                dropdownColor: AppColors.surfaceEl,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration:
+                    const InputDecoration(labelText: 'Frequency'),
+                items: RecurrencePattern.values
+                    .map((p) => DropdownMenuItem(
+                          value: p,
+                          child: Text(
+                              p.name[0].toUpperCase() + p.name.substring(1)),
+                        ))
+                    .toList(),
+                onChanged: (v) =>
+                    setState(() => _recurrencePattern = v!),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate:
+                        DateTime.now().add(const Duration(days: 30)),
+                    firstDate: DateTime.now(),
+                    lastDate:
+                        DateTime.now().add(const Duration(days: 730)),
+                  );
+                  if (picked != null) {
+                    setState(() => _recurrenceEndDate =
+                        '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+                  }
+                },
+                icon: const Icon(Icons.event_outlined,
+                    size: 16, color: AppColors.textSecondary),
+                label: Text(
+                  _recurrenceEndDate ?? 'End date (optional)',
+                  style: TextStyle(
+                    color: _recurrenceEndDate != null
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             ElevatedButton(
                 onPressed: _submit,

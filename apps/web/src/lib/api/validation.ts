@@ -223,6 +223,26 @@ export function validateUUID(
   return value
 }
 
+/**
+ * Validates a boolean field. Returns undefined if not provided, or the boolean value.
+ */
+export function validateBoolean(
+  value: unknown,
+  field: string,
+  opts: { required?: boolean } = {},
+): boolean | undefined {
+  if (value === undefined || value === null) {
+    if (opts.required) throw Errors.badRequest(`${field} is required`)
+    return undefined
+  }
+
+  if (typeof value !== 'boolean') {
+    throw Errors.badRequest(`${field} must be a boolean`)
+  }
+
+  return value
+}
+
 // Domain-specific enum constants for reuse across routes
 export const TASK_STATUSES = ['todo', 'in_progress', 'completed', 'cancelled'] as const
 export const TASK_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const

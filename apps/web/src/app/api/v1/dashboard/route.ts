@@ -1,13 +1,17 @@
 import { requireAuth } from '@/lib/api/auth-guard'
 import { errorResponse, successResponse } from '@/lib/api/errors'
 import { withRateLimit, RateLimitTier } from '@/lib/api/rate-limit'
+import { withCors, OPTIONS } from '@/lib/api/cors'
+import { withLogging } from '@/lib/api/logger'
 import { TaskService } from '@/features/tasks/services/task.service'
 import { GoalService } from '@/features/goals/services/goal.service'
 import { HabitService } from '@/features/habits/services/habit.service'
 import { createClient } from '@/lib/supabase/server'
 
+export { OPTIONS }
+
 // Single endpoint that assembles all data the Dashboard needs — one round trip
-export const GET = withRateLimit(async () => {
+export const GET = withLogging(withCors(withRateLimit(async () => {
   try {
     const user = await requireAuth()
 
@@ -29,7 +33,7 @@ export const GET = withRateLimit(async () => {
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'dashboard', tier: RateLimitTier.dashboard })
+}, { routeKey: 'dashboard', tier: RateLimitTier.dashboard })))
 
 async function getLatestInsight(userId: string) {
   const supabase = await createClient()

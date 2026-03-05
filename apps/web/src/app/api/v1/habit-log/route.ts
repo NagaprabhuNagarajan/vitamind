@@ -1,10 +1,14 @@
 import { requireAuth } from '@/lib/api/auth-guard'
 import { errorResponse, successResponse } from '@/lib/api/errors'
 import { withRateLimit, RateLimitTier } from '@/lib/api/rate-limit'
+import { withCors, OPTIONS } from '@/lib/api/cors'
+import { withLogging } from '@/lib/api/logger'
 import { validateUUID, validateEnum, validateDate, HABIT_LOG_STATUSES } from '@/lib/api/validation'
 import { HabitService } from '@/features/habits/services/habit.service'
 
-export const POST = withRateLimit(async (request: Request) => {
+export { OPTIONS }
+
+export const POST = withLogging(withCors(withRateLimit(async (request: Request) => {
   try {
     const user = await requireAuth()
     const body = await request.json()
@@ -19,4 +23,4 @@ export const POST = withRateLimit(async (request: Request) => {
   } catch (error) {
     return errorResponse(error)
   }
-}, { routeKey: 'habit-log', tier: RateLimitTier.standard })
+}, { routeKey: 'habit-log', tier: RateLimitTier.standard })))
