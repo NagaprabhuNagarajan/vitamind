@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { validateEnv } from '@/lib/env'
+import { AnalyticsProvider } from '@/components/providers/analytics-provider'
 
 // Validate environment variables once on server cold start.
 // Throws immediately if required vars are missing, preventing silent misconfiguration.
@@ -27,7 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-surface-secondary font-sans text-text-primary antialiased min-h-dvh">
-        {children}
+        <AnalyticsProvider>
+          {children}
+        </AnalyticsProvider>
       </body>
     </html>
   )

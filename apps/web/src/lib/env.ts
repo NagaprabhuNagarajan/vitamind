@@ -12,6 +12,9 @@ const OPTIONAL_VARS = [
   'OPENAI_API_KEY',
   'GROQ_API_KEY',
   'NEXT_PUBLIC_APP_URL',
+  'NEXT_PUBLIC_SENTRY_DSN',
+  'NEXT_PUBLIC_POSTHOG_KEY',
+  'NEXT_PUBLIC_POSTHOG_HOST',
 ] as const
 
 type RequiredVar = (typeof REQUIRED_VARS)[number]
@@ -69,5 +72,14 @@ export const env: Record<RequiredVar, string> & Record<OptionalVar, string | und
   },
   get NEXT_PUBLIC_APP_URL() {
     return process.env.NEXT_PUBLIC_APP_URL
+  },
+  get NEXT_PUBLIC_SENTRY_DSN() {
+    return process.env.NEXT_PUBLIC_SENTRY_DSN
+  },
+  get NEXT_PUBLIC_POSTHOG_KEY() {
+    return process.env.NEXT_PUBLIC_POSTHOG_KEY
+  },
+  get NEXT_PUBLIC_POSTHOG_HOST() {
+    return process.env.NEXT_PUBLIC_POSTHOG_HOST
   },
 }

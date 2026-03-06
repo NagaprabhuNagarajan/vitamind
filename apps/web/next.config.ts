@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { withSentryConfig } from '@sentry/nextjs'
 
 // ─── Security headers applied to every response ──────────────────────────────
 // These mitigate common web vulnerabilities (clickjacking, MIME sniffing,
@@ -20,7 +21,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co",
       // Allow connections to Supabase, PostHog analytics, and the app itself
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://app.posthog.com`,
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://app.posthog.com https://*.sentry.io`,
       "font-src 'self'",
       "frame-ancestors 'self'",
       "base-uri 'self'",
@@ -52,4 +53,10 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  disableLogger: true,
+})
