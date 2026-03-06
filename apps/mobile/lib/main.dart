@@ -8,6 +8,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'app.dart';
+import 'core/analytics/analytics_service.dart';
+import 'core/monitoring/sentry_service.dart';
 import 'core/notifications/notification_service.dart';
 
 Future<void> main() async {
@@ -20,12 +22,17 @@ Future<void> main() async {
     };
   }
 
+  // Load environment variables (must be first — other inits read from dotenv)
+  await dotenv.load(fileName: '.env');
+
+  // Initialize Sentry (no-op in debug mode or if DSN is missing)
+  await SentryService.init(dsn: dotenv.env['SENTRY_DSN'] ?? '');
+
   // Capture Flutter framework errors (layout, rendering, gestures)
   FlutterError.onError = (FlutterErrorDetails details) {
-    // Log to console — Sentry integration point
+    SentryService.captureException(details.exception, stackTrace: details.stack);
     debugPrint('[VitaMind] Flutter error: ${details.exception}');
     debugPrint('[VitaMind] Stack trace:\n${details.stack}');
-    // In debug mode, also print the default Flutter error output
     if (kDebugMode) {
       FlutterError.presentError(details);
     }
@@ -33,14 +40,11 @@ Future<void> main() async {
 
   // Capture async / platform errors not caught by Flutter framework
   PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    SentryService.captureException(error, stackTrace: stack);
     debugPrint('[VitaMind] Uncaught platform error: $error');
     debugPrint('[VitaMind] Stack trace:\n$stack');
-    // Return true to prevent the error from propagating further
     return true;
   };
-
-  // Load environment variables
-  await dotenv.load(fileName: '.env');
 
   // Initialize Firebase (optional — skipped if google-services.json is missing)
   try {
@@ -54,6 +58,12 @@ Future<void> main() async {
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+
+  // Initialize PostHog analytics (no-op if key is empty)
+  await AnalyticsService.init(
+    apiKey: dotenv.env['POSTHOG_KEY'] ?? '',
+    host: dotenv.env['POSTHOG_HOST'],
   );
 
   runApp(const VitaMindApp());

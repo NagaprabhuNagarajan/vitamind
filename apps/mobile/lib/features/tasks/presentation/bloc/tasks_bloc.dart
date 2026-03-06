@@ -216,7 +216,7 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
     if (state is TasksSuccess) {
       final current = state as TasksSuccess;
       emit(current.copyWith(
-        tasks: current.tasks.where((t) => t.id != event.taskId).toList(),
+        tasks: current.tasks.where((t) => t.id != event.taskId && t.parentTaskId != event.taskId).toList(),
       ));
     }
     try {

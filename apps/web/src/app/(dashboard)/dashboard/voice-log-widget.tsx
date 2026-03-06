@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Mic, MicOff, Loader2, Check, X } from 'lucide-react'
 
 interface ActionResult {
@@ -14,17 +14,30 @@ export function VoiceLogWidget() {
   const [processing, setProcessing] = useState(false)
   const [result, setResult] = useState<ActionResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [supportsRecognition, setSupportsRecognition] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
   const startTimeRef = useRef<number>(0)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supportsRecognition = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in (window as any))
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setSupportsRecognition('SpeechRecognition' in window || 'webkitSpeechRecognition' in (window as any))
+  }, [])
 
-  const startRecording = useCallback(() => {
+  const startRecording = useCallback(async () => {
     setError(null)
     setResult(null)
     setTranscript('')
+
+    // Request microphone permission explicitly before starting speech recognition
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // Stop the stream immediately — we just needed the permission grant
+      stream.getTracks().forEach((t) => t.stop())
+    } catch {
+      setError('Microphone access denied. Please allow microphone in browser and system settings.')
+      return
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition

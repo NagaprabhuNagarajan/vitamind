@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Calendar, Link2, Unlink, RefreshCw, Check, ExternalLink } from 'lucide-react'
+import { Calendar, Link2, Unlink, RefreshCw, Check, ExternalLink, Download } from 'lucide-react'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,6 +40,7 @@ export function CalendarSection() {
   const [status, setStatus] = useState<CalendarStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
   const [syncResult, setSyncResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -126,14 +127,35 @@ export function CalendarSection() {
       if (!res.ok) {
         setError(json.error?.message ?? 'Sync failed.')
       } else {
-        const { synced, total } = json.data
-        setSyncResult(`Synced ${synced} of ${total} tasks.`)
+        const { synced, total, message } = json.data
+        setSyncResult(message ?? `Synced ${synced} of ${total} tasks.`)
         await fetchStatus()
       }
     } catch {
       setError('Network error during sync.')
     } finally {
       setSyncing(false)
+    }
+  }
+
+  async function handleImport() {
+    setImporting(true)
+    setSyncResult(null)
+    setError(null)
+    try {
+      const res = await fetch('/api/v1/calendar/import', { method: 'POST' })
+      const json = await res.json()
+
+      if (!res.ok) {
+        setError(json.error?.message ?? 'Import failed.')
+      } else {
+        setSyncResult(json.data.message)
+        await fetchStatus()
+      }
+    } catch {
+      setError('Network error during import.')
+    } finally {
+      setImporting(false)
     }
   }
 
@@ -204,7 +226,7 @@ export function CalendarSection() {
             Calendar Integration
           </h2>
           <p className="text-xs text-text-tertiary">
-            Sync your tasks to Google Calendar
+            Sync tasks with Google Calendar
           </p>
         </div>
       </div>
@@ -249,19 +271,34 @@ export function CalendarSection() {
                 {formatLastSynced(status?.lastSyncedAt)}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleSync}
-              disabled={syncing}
-              className="btn-primary flex items-center gap-2 text-sm"
-            >
-              {syncing ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="w-3.5 h-3.5" />
-              )}
-              {syncing ? 'Syncing...' : 'Sync now'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleImport}
+                disabled={importing}
+                className="btn-secondary flex items-center gap-2 text-sm"
+              >
+                {importing ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                {importing ? 'Importing...' : 'Import events'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSync}
+                disabled={syncing}
+                className="btn-primary flex items-center gap-2 text-sm"
+              >
+                {syncing ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" />
+                )}
+                {syncing ? 'Syncing...' : 'Sync tasks'}
+              </button>
+            </div>
           </div>
 
           {/* Sync result feedback */}

@@ -16,6 +16,8 @@ import {
   BookOpen,
   Crosshair,
   Shield,
+  Clock,
+  Hexagon,
 } from 'lucide-react'
 import { LogoutDialog } from './logout-dialog'
 
@@ -30,6 +32,8 @@ const NAV_ITEMS = [
   { href: '/reviews',   label: 'Reviews',   icon: BookOpen },
   { href: '/focus',      label: 'Focus',     icon: Crosshair },
   { href: '/contracts',  label: 'Contracts', icon: Shield },
+  { href: '/timeline',  label: 'Timeline',  icon: Clock },
+  { href: '/life-map',  label: 'Life Map',  icon: Hexagon },
   { href: '/settings',  label: 'Settings',  icon: Settings },
 ]
 

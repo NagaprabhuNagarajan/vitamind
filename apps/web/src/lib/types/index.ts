@@ -47,6 +47,8 @@ export interface Task {
   updated_at: string
 }
 
+export type LifeDomain = 'health' | 'career' | 'relationships' | 'finance' | 'learning' | 'personal'
+
 export interface Goal {
   id: UUID
   user_id: UUID
@@ -55,6 +57,7 @@ export interface Goal {
   target_date: string | null
   progress: number // 0–100
   is_completed: boolean
+  domain: LifeDomain
   created_at: string
   updated_at: string
 }

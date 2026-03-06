@@ -6,7 +6,7 @@
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 102   | 102       | 0           | 0       |
+| 157   | 157       | 0           | 0       |
 
 ---
 
@@ -896,3 +896,169 @@
 | Google Calendar OAuth | Configured | Credentials set in Vercel |
 | Resend / SendGrid (Email) | Pending | Need API key for weekly reports |
 | Razorpay (Payments) | Deferred | For accountability contract stakes (UPI, net banking, cards) |
+
+---
+
+## Phase 41 -- Life Timeline (Sprint 3)
+
+- [x] Created `backend/supabase/migrations/014_life_timeline.sql` -- life_event_type enum, life_events table, RLS policies, GIN index for full-text search, auto-populate triggers (task completed, goal achieved, habit streak milestones)
+- [x] Created `apps/web/src/app/api/v1/timeline/route.ts` -- GET (paginated, filterable by type/date) + POST (create manual note/milestone events)
+- [x] Created `apps/web/src/app/api/v1/timeline/search/route.ts` -- GET full-text search on event titles
+- [x] Created `apps/web/src/app/api/v1/timeline/[id]/route.ts` -- DELETE manual events (notes/milestones only)
+- [x] Created `apps/web/src/app/(dashboard)/timeline/page.tsx` -- chronological feed with date grouping, filter chips (All/Tasks/Goals/Habits/Milestones/Notes), search bar, "Add life event" form (Note/Milestone types), swipe-to-delete for manual entries
+- [x] Added Timeline to sidebar navigation (`apps/web/src/components/layout/sidebar.tsx`)
+- [x] Created `apps/mobile/lib/features/timeline/` -- data models, service, BLoC, timeline screen with filters/search/create/delete
+- [x] Added Timeline tab to mobile bottom navigation
+
+**Files created/modified:** 8 files
+
+---
+
+## Phase 42 -- Life Map (Sprint 4)
+
+- [x] Created `backend/supabase/migrations/015_life_map_domain.sql` -- life_domain enum (health, career, relationships, finance, learning, personal), added domain column to goals table
+- [x] Created `apps/web/src/app/api/v1/life-map/route.ts` -- GET endpoint computing per-domain weighted scores (goals 50%, tasks 30%, habits 20%), overall life score, template-based insights
+- [x] Created `apps/web/src/app/(dashboard)/life-map/page.tsx` -- SVG hexagonal radar chart, domain cards with progress bars, expandable active goals, template insights, overall life score
+- [x] Added Life Map to sidebar navigation
+- [x] Created `apps/mobile/lib/features/life_map/` -- data models, service, screen with CustomPainter radar chart, domain cards
+- [x] Added Life Map tab to mobile bottom navigation
+
+**Files created/modified:** 7 files
+
+---
+
+## Phase 43 -- Calendar Two-Way Sync
+
+- [x] Created `apps/web/src/app/api/v1/calendar/import/route.ts` -- POST endpoint to pull Google Calendar events (next 7 days) and create VitaMind tasks, duplicate detection via calendar_event_id
+- [x] Updated `apps/web/src/app/(dashboard)/settings/calendar-section.tsx` -- added "Import events" button alongside "Sync tasks", fixed "Synced 0 of undefined tasks" by using message field
+- [x] Updated `apps/mobile/lib/features/settings/presentation/widgets/calendar_settings_tile.dart` -- added sync and import buttons with Dio API calls, loading states
+
+**Files created/modified:** 3 files
+
+---
+
+## Phase 44 -- Subtask Cascade Delete
+
+- [x] Updated `apps/web/src/features/tasks/services/task.service.ts` -- delete method now cascades to subtasks first
+- [x] Created `apps/web/src/features/tasks/repositories/task.repository.ts` -- added deleteSubtasks method
+- [x] Updated `apps/mobile/lib/features/tasks/data/task_service.dart` -- delete cascades subtasks before parent
+- [x] Updated `apps/mobile/lib/features/tasks/presentation/bloc/tasks_bloc.dart` -- local state removal filters out subtasks
+
+**Files modified:** 4 files
+
+---
+
+## Phase 45 -- Bug Fixes & UI Improvements
+
+- [x] Fixed radar chart cropping in Life Map -- increased CHART_SIZE from 320 to 400 (`life-map/page.tsx`)
+- [x] Fixed Voice Log hydration mismatch -- moved `supportsRecognition` check from render-time to useEffect/useState pattern (`voice-log-widget.tsx`)
+- [x] Added explicit microphone permission request via getUserMedia before SpeechRecognition (`voice-log-widget.tsx`)
+- [x] Fixed calendar sync "Synced 0 of undefined tasks" -- use API message field with fallback (`calendar-section.tsx`)
+
+**Files modified:** 3 files
+
+---
+
+## Phase 46 -- Documentation Updates
+
+- [x] Updated `docs/FEATURES.md` -- added Life Timeline, Life Map (both marked complete), calendar import, subtask cascade, 35+ API endpoints
+- [x] Updated `docs/API_CONTRACTS.md` -- added 7 new endpoints (calendar sync/import, timeline CRUD+search, life-map)
+- [x] Updated `docs/DATABASE_SCHEMA.md` -- added life_event_type and life_domain enums, life_events table, goals.domain column, triggers, indexes
+- [x] Updated `docs/ROADMAP.md` -- marked Phase K (Life Timeline + Life Map) as complete
+- [x] Updated `docs/UI_UX_FLOW.md` -- added Life Timeline and Life Map screens, updated Settings with calendar sync/import
+- [x] Updated `PROGRESS.md` -- added phases 41-46, updated total count
+
+**Files modified:** 6 files
+
+---
+
+## Phase 47 -- Mobile Sentry & PostHog Activation
+
+- [x] Rewrote `apps/mobile/lib/core/monitoring/sentry_service.dart` -- activated Sentry SDK (was commented-out stub), init with DSN, captureException wired up
+- [x] Rewrote `apps/mobile/lib/core/analytics/analytics_service.dart` -- activated PostHog SDK (was commented-out stub), fixed `Map<String, Object>?` type for PostHog API
+- [x] Updated `apps/mobile/lib/main.dart` -- added SentryService.init, PostHog init, FlutterError.onError + PlatformDispatcher.onError hooks for Sentry capture
+- [x] Updated `apps/mobile/.env` -- added SENTRY_DSN, POSTHOG_KEY, POSTHOG_HOST placeholders
+
+**Files modified:** 4 files
+
+---
+
+## Phase 48 -- Mobile Speech-to-Text (Voice Log)
+
+- [x] Added `speech_to_text: ^7.0.0` to `apps/mobile/pubspec.yaml`
+- [x] Rewrote `apps/mobile/lib/features/voice_log/presentation/screens/voice_log_screen.dart` -- real-time speech recognition via SpeechToText, tap mic to start/stop, auto-stop after 30s or 3s silence, pulsing red animation while recording
+- [x] Added `RECORD_AUDIO` and `INTERNET` permissions to `apps/mobile/android/app/src/main/AndroidManifest.xml`
+- [x] Added `NSSpeechRecognitionUsageDescription` and `NSMicrophoneUsageDescription` to `apps/mobile/ios/Runner/Info.plist`
+
+**Files modified:** 4 files
+
+---
+
+## Phase 49 -- Kotlin Build Fix
+
+- [x] Updated `apps/mobile/android/build.gradle.kts` -- added KotlinCompile language/api version override to 1.9 (posthog_flutter uses 1.6 which Kotlin 2.2.20 dropped)
+
+**Files modified:** 1 file
+
+---
+
+## Phase 50 -- Cascade Intelligence & Goal Autopilot UI Visibility
+
+- [x] Created `apps/web/src/app/(dashboard)/goals/cascade-section.tsx` -- full Cascade Intelligence management UI: view/remove habit-goal links, AI-suggested links with accept, manual link form with dropdowns
+- [x] Updated `apps/web/src/app/(dashboard)/goals/page.tsx` -- added HabitService import, parallel habit fetch, CascadeSection component with habit/goal options
+- [x] Updated `apps/web/src/app/(dashboard)/goals/goal-list.tsx` -- added autopilot toggle button (Rocket icon) on each goal card, calls `/api/v1/goal-autopilot` POST to enable/disable
+
+**Files created/modified:** 3 files
+
+---
+
+## Phase 51 -- dotenv Initialization Order Fix
+
+- [x] Fixed `apps/mobile/lib/main.dart` -- moved `dotenv.load()` before all service initializations (was causing NotInitializedError when Sentry/PostHog tried to read env vars)
+
+**Files modified:** 1 file
+
+---
+
+## Backlog -- Pending Items
+
+### Requires Manual Action
+
+| # | Item | Status |
+|---|------|--------|
+| ~~1~~ | ~~Apply DB migration 014 (Life Timeline)~~ | ~~Done~~ |
+| ~~2~~ | ~~Apply DB migration 015 (Life Map)~~ | ~~Done~~ |
+| ~~3~~ | ~~Resend API key for weekly email reports~~ | ~~Done~~ |
+| ~~4~~ | ~~Mobile Sentry — wired up in main.dart~~ | ~~Done~~ |
+| ~~5~~ | ~~Mobile PostHog — wired up in main.dart~~ | ~~Done~~ |
+| 6 | Mobile app store builds | Pending — build and publish to Google Play / Apple App Store |
+
+### Known Limitations
+
+| # | Item | Details |
+|---|------|---------|
+| 1 | Voice Log requires HTTPS | Web Speech API needs secure context; works in production but not on localhost HTTP |
+| 2 | Google OAuth "unverified app" warning | Expected during development; submit app for Google verification before public launch |
+
+### Future Development (from Roadmap)
+
+| # | Phase | Feature | Status |
+|---|-------|---------|--------|
+| 1 | Phase H | Calendar-aware AI daily planning (AI sees meetings) | Not started |
+| 2 | Phase H | Smart scheduling (optimal times from Time Fingerprint + calendar) | Not started |
+| 3 | Phase H | AI productivity coaching conversations | Not started |
+| 4 | Phase I | Financial insights integration | Not started |
+| 5 | Phase I | Health data connections (Apple Health, Google Fit) | Not started |
+| 6 | Phase I | Automation workflows (IFTTT/Zapier-style triggers) | Not started |
+| 7 | Phase J | Razorpay integration (UPI, net banking, cards) | Not started |
+| 8 | Phase J | Pro tier feature gating | Not started |
+| 9 | Phase J | Team tier: shared accountability contracts | Not started |
+| 10 | Phase L | AI Life Coach (behavioral pattern analysis) | Not started |
+| 11 | Phase L | AI Life Companion (persistent personality-aware AI) | Not started |
+| 12 | Phase M | Decision Engine (AI-assisted decision making) | Not started |
+| 13 | Phase M | Life Simulation (future scenario modeling) | Not started |
+| 14 | Phase N | AI Personal Knowledge Graph | Not started |
+| 15 | Phase N | Life Auto Capture (calendar, email, health data ingestion) | Not started |
+| 16 | Phase O | Social Accountability Layer | Not started |
+| 17 | Phase O | Future Self (time capsule + AI predictions) | Not started |
+| 18 | -- | Apple Calendar sync | Not started |

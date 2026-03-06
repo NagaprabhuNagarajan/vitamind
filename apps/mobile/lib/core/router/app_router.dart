@@ -24,6 +24,8 @@ import '../../features/habit_stacking/presentation/screens/habit_stacks_screen.d
 import '../../features/goal_autopilot/presentation/screens/goal_autopilot_screen.dart';
 import '../../features/accountability/presentation/screens/contracts_screen.dart';
 import '../../features/time_fingerprint/presentation/screens/time_fingerprint_screen.dart';
+import '../../features/timeline/presentation/screens/timeline_screen.dart';
+import '../../features/life_map/presentation/screens/life_map_screen.dart';
 
 class Routes {
   static const splash = '/';
@@ -50,6 +52,8 @@ class Routes {
   static const goalAutopilot = '/goal-autopilot';
   static const contracts = '/contracts';
   static const timeFingerprint = '/time-fingerprint';
+  static const timeline = '/timeline';
+  static const lifeMap = '/life-map';
 }
 
 class AppRouter {
@@ -106,6 +110,8 @@ class AppRouter {
       GoRoute(path: Routes.goalAutopilot, builder: (_, __) => const GoalAutopilotScreen()),
       GoRoute(path: Routes.contracts, builder: (_, __) => const ContractsScreen()),
       GoRoute(path: Routes.timeFingerprint, builder: (_, __) => const TimeFingerprintScreen()),
+      GoRoute(path: Routes.timeline, builder: (_, __) => const TimelineScreen()),
+      GoRoute(path: Routes.lifeMap, builder: (_, __) => const LifeMapScreen()),
     ],
   );
 }

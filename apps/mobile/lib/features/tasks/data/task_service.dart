@@ -298,6 +298,8 @@ class TaskService {
   }
 
   Future<void> delete(String taskId) async {
+    // Delete subtasks first so they don't become orphaned
+    await _supabase.from('tasks').delete().eq('parent_task_id', taskId);
     await _supabase.from('tasks').delete().eq('id', taskId);
   }
 }

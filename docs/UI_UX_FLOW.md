@@ -41,7 +41,23 @@ User Journey
 -   Chat interface
 -   Ask productivity questions
 
-8.  Profile Settings
+8.  Life Timeline
+
+-   Chronological feed of life events (auto + manual)
+-   Filter by type: tasks, goals, habits, milestones, notes
+-   Search by keyword
+-   Add manual events (notes, milestones)
+-   Swipe-to-delete manual entries (mobile)
+
+9.  Life Map
+
+-   Hexagonal radar chart showing 6 life domain scores
+-   Domain cards with progress bars and active goals
+-   Expand domain to see linked goals
+-   Template-based insights per domain
+
+10. Profile Settings
 
 -   Notification preferences
 -   Account settings
+-   Google Calendar integration (connect/disconnect, sync tasks, import events)

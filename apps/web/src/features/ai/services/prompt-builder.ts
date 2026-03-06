@@ -1,6 +1,7 @@
 import type { Task, Goal, Habit, HabitLog } from '@/lib/types'
 import type { MomentumSnapshot } from '@/features/momentum/types'
 import type { ProductivityProfile } from '@/features/time-fingerprint/services/time-fingerprint.service'
+import type { CalendarEvent } from '@/features/calendar/services/google-calendar'
 
 // Builds structured prompts for each AI use case.
 // Kept concise to minimise token usage and cost.
@@ -13,6 +14,7 @@ interface UserContext {
   habits: Array<Habit & { streak: number; todayLog: HabitLog | null }>
   momentum?: MomentumSnapshot | null
   timeFingerprint?: ProductivityProfile | null
+  calendarEvents?: CalendarEvent[]
 }
 
 // ─── Daily Planner ────────────────────────────────────────────────────────────
@@ -35,7 +37,7 @@ export function buildDailyPlanPrompt(ctx: UserContext): string {
     .map((h) => `- ${h.title} | streak: ${h.streak} days | done today: ${h.todayLog?.status === 'completed' ? 'yes' : 'no'}`)
     .join('\n')
 
-  // Momentum context
+  // Momentum context with coaching nudge
   let momentumBlock = ''
   if (ctx.momentum) {
     const m = ctx.momentum
@@ -45,6 +47,13 @@ export function buildDailyPlanPrompt(ctx: UserContext): string {
 - Goal Trajectory: ${m.goal_trajectory}/100
 - Overdue Pressure: ${m.overdue_pressure}/100
 - Burnout Risk: ${m.burnout_risk}/100`
+
+    // Proactive coaching nudge
+    if (m.burnout_risk >= 60) {
+      momentumBlock += `\nCOACHING ALERT: Burnout risk is elevated (${m.burnout_risk}/100). Suggest a lighter day — fewer tasks, prioritise rest and high-streak habits only.`
+    } else if (m.score < 40) {
+      momentumBlock += `\nCOACHING ALERT: Momentum is low (${m.score}/100). Focus on 1-2 quick wins to rebuild momentum. Suggest completing the easiest overdue task first.`
+    }
   }
 
   // Time fingerprint context
@@ -59,6 +68,20 @@ export function buildDailyPlanPrompt(ctx: UserContext): string {
 - Avg tasks/day: ${fp.avg_tasks_per_day}`
   }
 
+  // Calendar events context
+  let calendarBlock = ''
+  if (ctx.calendarEvents && ctx.calendarEvents.length > 0) {
+    const eventLines = ctx.calendarEvents.map((e) => {
+      if (e.allDay) return `- [All day] ${e.summary}`
+      const startTime = new Date(e.start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+      const endTime = new Date(e.end).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+      return `- [${startTime} - ${endTime}] ${e.summary}`
+    }).join('\n')
+    calendarBlock = `\nCALENDAR (today's meetings/events):
+${eventLines}
+NOTE: Do NOT schedule tasks during these time blocks. Plan tasks around them.`
+  }
+
   return `You are VitaMind, a calm and intelligent AI life assistant.
 
 Today is ${ctx.date}. Create a focused daily plan for ${ctx.name}.
@@ -71,22 +94,22 @@ ${goalLines || 'None'}
 
 HABITS (today):
 ${habitLines || 'None'}
-${momentumBlock}${fingerprintBlock}
+${momentumBlock}${fingerprintBlock}${calendarBlock}
 
 Respond in this exact format:
 ## Morning Focus
-[1-2 most important tasks to do first, scheduled during peak hours if known]
+[1-2 most important tasks to do first, scheduled during peak hours if known. Avoid calendar conflicts.]
 
 ## Key Priorities
-[3-5 prioritised actions for the day, with brief reasoning]
+[3-5 prioritised actions for the day, with brief reasoning and suggested time slots based on free windows between meetings]
 
 ## Habit Reminder
-[Which habits still need to be done today, with optimal timing suggestions if fingerprint data available]
+[Which habits still need to be done today, with optimal timing suggestions based on productivity profile and calendar gaps]
 
 ## Momentum Insight
 [One short observation about their momentum score trend and what single action would improve it most. If burnout risk > 60, suggest a lighter day.]
 
-Keep each section concise (1-3 lines). Be encouraging, not overwhelming. Use the productivity profile to time-optimise suggestions.`
+Keep each section concise (1-3 lines). Be encouraging, not overwhelming. Use the productivity profile to time-optimise suggestions. Work around calendar events — never double-book.`
 }
 
 // ─── Productivity Insights ────────────────────────────────────────────────────
@@ -123,18 +146,57 @@ Provide 2-3 sentences of actionable insight. Reference the momentum score if ava
 // ─── Chat Assistant ───────────────────────────────────────────────────────────
 
 export function buildChatSystemPrompt(ctx: Omit<UserContext, 'date'>): string {
-  const taskSummary = ctx.tasks.filter((t) => t.status !== 'completed').slice(0, 10)
+  const pendingTasks = ctx.tasks.filter((t) => t.status !== 'completed' && t.status !== 'cancelled')
+  const overdueTasks = pendingTasks.filter((t) => t.due_date && t.due_date < new Date().toISOString().split('T')[0])
+  const taskSummary = pendingTasks.slice(0, 10)
     .map((t) => `${t.title} (${t.priority})`).join(', ')
   const goalSummary = ctx.goals.filter((g) => !g.is_completed).slice(0, 5)
     .map((g) => `${g.title} (${g.progress}%)`).join(', ')
 
-  return `You are VitaMind, a calm and intelligent AI life assistant for ${ctx.name}.
+  // Behavioral context for coaching
+  let behavioralBlock = ''
+  if (ctx.momentum) {
+    const m = ctx.momentum
+    behavioralBlock += `\nBehavioral data:
+- Momentum score: ${m.score}/100 (task velocity: ${m.task_velocity}, habit consistency: ${m.habit_consistency}, goal trajectory: ${m.goal_trajectory})
+- Burnout risk: ${m.burnout_risk}/100${m.burnout_risk >= 60 ? ' (ELEVATED — suggest lighter workload)' : ''}
+- Overdue tasks: ${overdueTasks.length}`
+  }
+
+  // Habit streaks for coaching
+  const missedHabits = ctx.habits.filter((h) => h.todayLog?.status !== 'completed')
+  const topStreaks = ctx.habits.filter((h) => h.streak > 0).sort((a, b) => b.streak - a.streak).slice(0, 3)
+  if (topStreaks.length > 0) {
+    behavioralBlock += `\n- Top streaks: ${topStreaks.map((h) => `${h.title} (${h.streak} days)`).join(', ')}`
+  }
+  if (missedHabits.length > 0) {
+    behavioralBlock += `\n- Not done today: ${missedHabits.map((h) => h.title).join(', ')}`
+  }
+
+  // Time fingerprint for scheduling advice
+  let fingerprintLine = ''
+  if (ctx.timeFingerprint) {
+    const fp = ctx.timeFingerprint
+    fingerprintLine = `\n- Peak productivity: ${fp.peak_hours.map((h) => `${h}:00`).join(', ')} | Best window: ${fp.most_productive_window}`
+  }
+
+  // Calendar awareness
+  let calendarLine = ''
+  if (ctx.calendarEvents && ctx.calendarEvents.length > 0) {
+    calendarLine = `\n- Today's calendar: ${ctx.calendarEvents.length} events (${ctx.calendarEvents.map((e) => e.summary).join(', ')})`
+  }
+
+  return `You are VitaMind, a calm and intelligent AI life coach and productivity assistant for ${ctx.name}.
 
 Current context:
-- Pending tasks: ${taskSummary || 'none'}
+- Pending tasks: ${taskSummary || 'none'} (${overdueTasks.length} overdue)
 - Active goals: ${goalSummary || 'none'}
-- Active habits: ${ctx.habits.map((h) => h.title).join(', ') || 'none'}
+- Active habits: ${ctx.habits.map((h) => h.title).join(', ') || 'none'}${behavioralBlock}${fingerprintLine}${calendarLine}
 
-Answer questions about productivity, planning, and life management. Be concise, warm, and practical.
-Never make up data — only reference what's in the context above.`
+COACHING GUIDELINES:
+- When asked about productivity, habits, or goals: reference the actual behavioral data above. Give specific, data-backed suggestions.
+- When momentum is low or burnout risk is high: be empathetic. Suggest recovery actions, not more work.
+- When a user has long streaks: acknowledge and reinforce them.
+- When habits are missed: gently suggest optimal times based on their productivity profile.
+- Always be concise, warm, and actionable. Never make up data — only reference what's in the context above.`
 }

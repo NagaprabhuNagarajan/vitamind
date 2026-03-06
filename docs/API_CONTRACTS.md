@@ -1,6 +1,6 @@
 # VitaMind API Contracts
 
-> Last updated: 2026-03-05
+> Last updated: 2026-03-06
 > Source of truth: `apps/web/src/app/api/v1/` route handlers and `apps/web/src/lib/` utilities
 
 ## Overview
@@ -258,7 +258,7 @@ Note: When `status` is set to `completed`, the server should set `completed_at`.
 
 #### DELETE /api/v1/tasks/:id
 
-Delete a task.
+Delete a task. If the task has subtasks (via `parent_task_id`), all subtasks are deleted first.
 
 - **Auth**: Required
 - **Rate limit**: standard (100/min)
@@ -883,6 +883,199 @@ Note: Deletes all tasks, goals, habits, habit_logs, and ai_insights belonging to
 
 ---
 
+### Calendar
+
+#### POST /api/v1/calendar/sync
+
+Push unsynced VitaMind tasks (with due dates, no calendar_event_id) to Google Calendar as all-day events.
+
+- **Auth**: Required
+- **Rate limit**: dashboard (30/min)
+
+**Response** (200):
+
+```json
+{
+  "data": {
+    "synced": 3,
+    "total": 3,
+    "message": null
+  },
+  "error": null
+}
+```
+
+When no tasks to sync: `{ "synced": 0, "message": "No tasks to sync." }`.
+
+---
+
+#### POST /api/v1/calendar/import
+
+Pull upcoming events (next 7 days) from Google Calendar and create VitaMind tasks. Skips events already imported (matched by `calendar_event_id`).
+
+- **Auth**: Required
+- **Rate limit**: dashboard (30/min)
+
+**Response** (200):
+
+```json
+{
+  "data": {
+    "imported": 2,
+    "total": 2,
+    "skipped": 1,
+    "message": "Imported 2 events as tasks."
+  },
+  "error": null
+}
+```
+
+---
+
+### Timeline
+
+#### GET /api/v1/timeline
+
+List life events for the authenticated user, paginated and optionally filtered by event type.
+
+- **Auth**: Required
+- **Rate limit**: dashboard (30/min)
+
+**Query parameters**:
+
+| Param  | Type   | Required | Values                                                        |
+| ------ | ------ | -------- | ------------------------------------------------------------- |
+| `page` | number | No       | Default: 1                                                    |
+| `limit`| number | No       | Default: 20, max: 50                                          |
+| `type` | string | No       | `task_completed`, `goal_achieved`, `habit_streak`, `milestone`, `note` |
+
+**Response** (200): Paginated array of life event objects.
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "user_id": "uuid",
+      "event_type": "task_completed",
+      "title": "Completed: Ship feature X",
+      "description": null,
+      "metadata": { "task_id": "uuid", "priority": "high", "goal_id": null },
+      "event_date": "2026-03-06",
+      "created_at": "2026-03-06T10:00:00Z"
+    }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 45, "totalPages": 3 },
+  "error": null
+}
+```
+
+---
+
+#### GET /api/v1/timeline/search
+
+Full-text search on life event titles.
+
+- **Auth**: Required
+- **Rate limit**: dashboard (30/min)
+
+**Query parameters**:
+
+| Param | Type   | Required | Notes                  |
+| ----- | ------ | -------- | ---------------------- |
+| `q`   | string | Yes      | Search query (min 2 chars) |
+
+**Response** (200): Array of matching life events in `data` envelope.
+
+---
+
+#### POST /api/v1/timeline
+
+Create a manual life event (note or milestone).
+
+- **Auth**: Required
+- **Rate limit**: dashboard (30/min)
+
+**Request body**:
+
+```json
+{
+  "title": "Started new job",
+  "description": "Joined Acme Corp as a Senior Engineer",
+  "event_type": "milestone",
+  "event_date": "2026-03-01"
+}
+```
+
+| Field        | Type   | Required | Notes                            |
+| ------------ | ------ | -------- | -------------------------------- |
+| `title`      | string | Yes      | 1-200 characters                 |
+| `description`| string | No       | Max 1000 characters              |
+| `event_type` | string | Yes      | `note` or `milestone` only       |
+| `event_date` | string | No       | `YYYY-MM-DD`, defaults to today  |
+
+**Response** (201): Created life event in `data` envelope.
+
+---
+
+#### DELETE /api/v1/timeline/:id
+
+Delete a manual life event. Only `note` and `milestone` types can be deleted.
+
+- **Auth**: Required
+- **Rate limit**: dashboard (30/min)
+
+**Response** (200):
+
+```json
+{
+  "data": { "deleted": true },
+  "error": null
+}
+```
+
+**Errors**: 404 if not found, 403 if event type is not note/milestone.
+
+---
+
+### Life Map
+
+#### GET /api/v1/life-map
+
+Returns per-domain scores and insights for the Life Map radar visualization.
+
+- **Auth**: Required
+- **Rate limit**: dashboard (30/min)
+
+**Response** (200):
+
+```json
+{
+  "data": {
+    "domains": {
+      "health": {
+        "score": 65,
+        "goalCount": 2,
+        "activeGoals": [{ "id": "uuid", "title": "Run 5K", "status": "in_progress" }],
+        "topInsight": "Health is on track -- 2 active goals at 65% progress"
+      },
+      "career": { "score": 78, "goalCount": 1, "activeGoals": [...], "topInsight": "..." },
+      "relationships": { "score": 20, "goalCount": 0, "activeGoals": [], "topInsight": "Consider setting goals for Relationships" },
+      "finance": { "...": "..." },
+      "learning": { "...": "..." },
+      "personal": { "...": "..." }
+    },
+    "overallScore": 52,
+    "generatedAt": "2026-03-06T14:30:00Z"
+  },
+  "error": null
+}
+```
+
+Score computation per domain: `goalProgress * 0.5 + taskCompletionRate * 0.3 + habitConsistency * 0.2`.
+
+---
+
 ### Health Check
 
 #### GET /api/health
@@ -934,6 +1127,13 @@ Public endpoint (no auth required) to verify the service is running and can conn
 | POST   | `/api/v1/ai/daily-plan` | ai         | Generate daily plan             |
 | POST   | `/api/v1/ai/chat`       | ai         | AI chat assistant               |
 | POST   | `/api/v1/ai/insights`   | ai         | Productivity insights           |
+| POST   | `/api/v1/calendar/sync`   | dashboard  | Push tasks to Google Calendar   |
+| POST   | `/api/v1/calendar/import` | dashboard  | Import events from Google Calendar |
+| GET    | `/api/v1/timeline`        | dashboard  | List life events (paginated)    |
+| GET    | `/api/v1/timeline/search` | dashboard  | Search life events              |
+| POST   | `/api/v1/timeline`        | dashboard  | Create manual life event        |
+| DELETE | `/api/v1/timeline/:id`    | dashboard  | Delete manual life event        |
+| GET    | `/api/v1/life-map`        | dashboard  | Life Map domain scores          |
 | GET    | `/api/v1/user`          | standard   | Get user profile                |
 | PUT    | `/api/v1/user`          | standard   | Update user profile             |
 | DELETE | `/api/v1/user`          | standard   | Delete account (cascade)        |

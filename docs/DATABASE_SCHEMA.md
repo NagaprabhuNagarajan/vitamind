@@ -1,11 +1,11 @@
 # VitaMind Database Schema
 
-> Last updated: 2026-03-05
-> Source of truth: `backend/supabase/migrations/001_initial_schema.sql`, `002_rls_policies.sql`, `003_fcm_token.sql`
+> Last updated: 2026-03-06
+> Source of truth: `backend/supabase/migrations/001_initial_schema.sql`, `002_rls_policies.sql`, `003_fcm_token.sql`, `014_life_timeline.sql`, `015_life_map_domain.sql`
 
 ## Overview
 
-VitaMind uses Supabase (PostgreSQL) with Row-Level Security enforcing strict per-user data isolation. The schema consists of 6 tables, 5 enum types, and several helper functions for automatic goal progress tracking and habit streak calculation.
+VitaMind uses Supabase (PostgreSQL) with Row-Level Security enforcing strict per-user data isolation. The schema consists of 10+ tables, 7 enum types, and several helper functions/triggers for automatic goal progress tracking, habit streak calculation, and timeline event auto-population.
 
 ### PostgreSQL Extensions
 
@@ -52,6 +52,18 @@ CREATE TYPE habit_log_status AS ENUM ('completed', 'skipped', 'missed');
 CREATE TYPE insight_type AS ENUM ('daily_plan', 'productivity', 'life_optimization');
 ```
 
+### life_event_type
+
+```sql
+CREATE TYPE life_event_type AS ENUM ('task_completed', 'goal_achieved', 'habit_streak', 'milestone', 'note');
+```
+
+### life_domain
+
+```sql
+CREATE TYPE life_domain AS ENUM ('health', 'career', 'relationships', 'finance', 'learning', 'personal');
+```
+
 ---
 
 ## Tables
@@ -85,6 +97,7 @@ Long-term user goals with percentage-based progress tracking. Created before tas
 | `target_date`  | `DATE`        | YES      | `NULL`        | --                                       |
 | `progress`     | `SMALLINT`    | NO       | `0`           | CHECK: 0-100                             |
 | `is_completed` | `BOOLEAN`     | NO       | `FALSE`       | --                                       |
+| `domain`       | `life_domain` | NO       | `'personal'`  | Life domain for Life Map visualization   |
 | `created_at`   | `TIMESTAMPTZ` | NO       | `NOW()`       | --                                       |
 | `updated_at`   | `TIMESTAMPTZ` | NO       | `NOW()`       | Auto-updated by trigger                  |
 
@@ -251,6 +264,27 @@ AI-suggested or user-created sequences of habits that work well together.
 | `created_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | --                                       |
 | `updated_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | Auto-updated by trigger                  |
 
+### life_events
+
+Chronological life timeline auto-populated by triggers and user-created notes/milestones. Added in migration 014.
+
+| Column      | Type              | Nullable | Default              | Constraints                              |
+| ----------- | ----------------- | -------- | -------------------- | ---------------------------------------- |
+| `id`        | `UUID`            | NO       | `gen_random_uuid()`  | PK                                       |
+| `user_id`   | `UUID`            | NO       | --                   | FK -> `auth.users(id)` ON DELETE CASCADE |
+| `event_type`| `life_event_type` | NO       | --                   | --                                       |
+| `title`     | `TEXT`            | NO       | --                   | --                                       |
+| `description`| `TEXT`           | YES      | `NULL`               | --                                       |
+| `metadata`  | `JSONB`           | YES      | `'{}'`               | task_id, goal_id, streak_count, etc.     |
+| `event_date`| `DATE`            | NO       | `CURRENT_DATE`       | --                                       |
+| `created_at`| `TIMESTAMPTZ`     | NO       | `NOW()`              | --                                       |
+
+**RLS policies**: SELECT (own events), INSERT (own events), DELETE (own events, note/milestone types only).
+
+**Auto-population triggers**:
+- `trg_life_event_task_completed`: fires on `tasks` UPDATE when status becomes 'completed'
+- `trg_life_event_goal_achieved`: fires on `goals` UPDATE when is_completed becomes TRUE
+
 ---
 
 ## Indexes
@@ -302,6 +336,20 @@ AI-suggested or user-created sequences of habits that work well together.
 | --------------------------- | ----- | ----------------------- | ----------------- |
 | `idx_ai_insights_user_type` | btree | `user_id, type`         | --                |
 | `idx_ai_insights_created`   | btree | `user_id, created_at DESC` | --             |
+
+### goals (additional)
+
+| Index Name                  | Type  | Column(s)               | Partial Condition |
+| --------------------------- | ----- | ----------------------- | ----------------- |
+| `idx_goals_user_domain`     | btree | `user_id, domain`       | --                |
+
+### life_events
+
+| Index Name                       | Type  | Column(s)                        | Partial Condition |
+| -------------------------------- | ----- | -------------------------------- | ----------------- |
+| `idx_life_events_user_date`      | btree | `user_id, event_date DESC`       | --                |
+| `idx_life_events_user_type`      | btree | `user_id, event_type`            | --                |
+| `idx_life_events_title_search`   | GIN   | `to_tsvector('english', title)`  | --                |
 
 ---
 
@@ -355,6 +403,8 @@ Trigger function that fires after a task is updated. If the task's `status` chan
 | `trg_habits_updated_at`       | `habits`      | BEFORE UPDATE | UPDATE  | `update_updated_at()`              |
 | `trg_on_auth_user_created`    | `auth.users`  | AFTER INSERT  | INSERT  | `handle_new_user()`                |
 | `trg_task_goal_progress`      | `tasks`       | AFTER UPDATE  | UPDATE  | `trg_task_update_goal_progress()`  |
+| `trg_life_event_task_completed`| `tasks`      | AFTER UPDATE  | UPDATE  | `create_life_event_on_task_completed()` |
+| `trg_life_event_goal_achieved` | `goals`      | AFTER UPDATE  | UPDATE  | `create_life_event_on_goal_achieved()` |
 
 ---
 

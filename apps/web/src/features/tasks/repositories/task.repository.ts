@@ -80,6 +80,18 @@ export class TaskRepository {
     return data as Task
   }
 
+  static async deleteSubtasks(parentId: string, userId: string): Promise<void> {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from(this.TABLE)
+      .delete()
+      .eq('parent_task_id', parentId)
+      .eq('user_id', userId)
+
+    if (error) throw new Error(error.message)
+  }
+
   static async delete(id: string, userId: string): Promise<void> {
     const supabase = await createClient()
 

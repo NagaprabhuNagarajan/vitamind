@@ -21,6 +21,24 @@ interface GoogleCalendarEventResponse {
   htmlLink: string
 }
 
+export interface CalendarEvent {
+  id: string
+  summary: string
+  start: string   // ISO datetime or date
+  end: string     // ISO datetime or date
+  allDay: boolean
+}
+
+interface GoogleEventsListResponse {
+  items: Array<{
+    id: string
+    summary?: string
+    status: string
+    start?: { dateTime?: string; date?: string }
+    end?: { dateTime?: string; date?: string }
+  }>
+}
+
 interface GoogleTokenResponse {
   access_token: string
   expires_in: number
@@ -85,6 +103,47 @@ export async function createCalendarEvent(
 
   const data = await handleGoogleResponse<GoogleCalendarEventResponse>(response)
   return data.id
+}
+
+/**
+ * Lists calendar events for a given date range.
+ * Returns simplified event objects for use in AI context.
+ */
+export async function listCalendarEvents(
+  accessToken: string,
+  timeMin: string,
+  timeMax: string,
+  calendarId = 'primary',
+): Promise<CalendarEvent[]> {
+  const params = new URLSearchParams({
+    timeMin,
+    timeMax,
+    singleEvents: 'true',
+    orderBy: 'startTime',
+    maxResults: '25',
+  })
+
+  const response = await fetch(
+    `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  )
+
+  const data = await handleGoogleResponse<GoogleEventsListResponse>(response)
+
+  return (data.items ?? [])
+    .filter((e) => e.status !== 'cancelled' && e.summary)
+    .map((e) => {
+      const allDay = !e.start?.dateTime
+      return {
+        id: e.id,
+        summary: e.summary!,
+        start: e.start?.dateTime ?? e.start?.date ?? '',
+        end: e.end?.dateTime ?? e.end?.date ?? '',
+        allDay,
+      }
+    })
 }
 
 /**

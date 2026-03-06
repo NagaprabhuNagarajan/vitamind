@@ -21,7 +21,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 function makeGoal(overrides: Partial<Goal> = {}): Goal {
   return {
     id: 'g1', user_id: 'u1', title: 'Ship MVP', description: null,
-    target_date: '2026-06-01', progress: 40, is_completed: false,
+    target_date: '2026-06-01', progress: 40, is_completed: false, domain: 'personal',
     created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z',
     ...overrides,
   }
@@ -197,7 +197,7 @@ describe('buildChatSystemPrompt', () => {
       goals: [makeGoal()],
       habits: [makeHabitWithStreak()],
     })
-    expect(prompt).toContain('AI life assistant for Alex')
+    expect(prompt).toContain('AI life coach and productivity assistant for Alex')
     expect(prompt).toContain('Write tests (high)')
     expect(prompt).toContain('Ship MVP (40%)')
     expect(prompt).toContain('Meditate')
@@ -221,6 +221,36 @@ describe('buildChatSystemPrompt', () => {
     expect(prompt).toContain('Pending tasks: none')
     expect(prompt).toContain('Active goals: none')
     expect(prompt).toContain('Active habits: none')
+  })
+
+  it('includes momentum and burnout data when available', () => {
+    const prompt = buildChatSystemPrompt({
+      name: 'Alex',
+      tasks: [],
+      goals: [],
+      habits: [],
+      momentum: {
+        id: 'm1', user_id: 'u1', date: '2026-03-06',
+        score: 72, task_velocity: 80, habit_consistency: 65,
+        goal_trajectory: 70, overdue_pressure: 20, burnout_risk: 35,
+        created_at: '2026-03-06T00:00:00Z',
+      },
+    })
+    expect(prompt).toContain('Momentum score: 72/100')
+    expect(prompt).toContain('Burnout risk: 35/100')
+  })
+
+  it('includes calendar events when available', () => {
+    const prompt = buildChatSystemPrompt({
+      name: 'Alex',
+      tasks: [],
+      goals: [],
+      habits: [],
+      calendarEvents: [
+        { id: 'e1', summary: 'Team standup', start: '2026-03-06T09:00:00', end: '2026-03-06T09:30:00', allDay: false },
+      ],
+    })
+    expect(prompt).toContain('Team standup')
   })
 
   it('caps tasks at 10', () => {

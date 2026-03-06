@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { cn, formatDate } from '@/lib/utils'
-import { Target, Trash2, CheckCircle2, Trophy } from 'lucide-react'
+import { Target, Trash2, CheckCircle2, Trophy, Rocket, ToggleLeft, ToggleRight } from 'lucide-react'
 import type { Goal } from '@/lib/types'
 
 // ─── Complete confirmation dialog ─────────────────────────────────────────────
@@ -91,6 +91,7 @@ export function GoalList({ initialGoals }: { initialGoals: Goal[] }) {
   const [acting, setActing] = useState<string | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
   const [pendingComplete, setPendingComplete] = useState<{ goal: Goal; progress: number } | null>(null)
+  const [togglingAutopilot, setTogglingAutopilot] = useState<string | null>(null)
   const router = useRouter()
 
   // Track slider refs so we can reset value on cancel
@@ -145,6 +146,23 @@ export function GoalList({ initialGoals }: { initialGoals: Goal[] }) {
     }
   }
 
+  async function handleToggleAutopilot(goalId: string, currentlyEnabled: boolean) {
+    setTogglingAutopilot(goalId)
+    try {
+      await fetch('/api/v1/goal-autopilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: currentlyEnabled ? 'disable' : 'enable', goal_id: goalId }),
+      })
+      setGoals(prev => prev.map(g =>
+        g.id === goalId ? { ...g, autopilot_enabled: !currentlyEnabled } : g
+      ))
+      router.refresh()
+    } finally {
+      setTogglingAutopilot(null)
+    }
+  }
+
   return (
     <>
       <div className="space-y-4">
@@ -191,13 +209,35 @@ export function GoalList({ initialGoals }: { initialGoals: Goal[] }) {
                           <p className="text-sm text-text-secondary mt-1">{goal.description}</p>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleDelete(goal.id)}
-                        disabled={acting === goal.id}
-                        className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-red-500 transition-all flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {!goal.is_completed && (
+                          <button
+                            onClick={() => handleToggleAutopilot(goal.id, !!(goal as any).autopilot_enabled)}
+                            disabled={togglingAutopilot === goal.id}
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all"
+                            style={{
+                              background: (goal as any).autopilot_enabled ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.04)',
+                              border: `1px solid ${(goal as any).autopilot_enabled ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                              color: (goal as any).autopilot_enabled ? '#818cf8' : undefined,
+                            }}
+                            title={(goal as any).autopilot_enabled ? 'Disable Autopilot' : 'Enable Autopilot'}
+                          >
+                            <Rocket className="w-3 h-3" />
+                            {(goal as any).autopilot_enabled ? (
+                              <ToggleRight className="w-4 h-4 text-indigo-400" />
+                            ) : (
+                              <ToggleLeft className="w-4 h-4 text-text-tertiary" />
+                            )}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(goal.id)}
+                          disabled={acting === goal.id}
+                          className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-red-500 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Progress */}

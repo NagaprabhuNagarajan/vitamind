@@ -44,6 +44,8 @@ export class TaskService {
 
   static async delete(id: string, userId: string): Promise<void> {
     await this.getById(id, userId)
+    // Delete subtasks first so they don't become orphaned
+    await TaskRepository.deleteSubtasks(id, userId)
     return TaskRepository.delete(id, userId)
   }
 

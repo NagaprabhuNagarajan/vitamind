@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -6,13 +7,6 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../data/voice_log_service.dart';
 
-/// Voice Log screen -- lets users type (or eventually dictate) a natural-
-/// language transcript that the backend AI parses into structured actions
-/// such as creating tasks, completing habits, or logging progress.
-///
-/// NOTE: Full speech-to-text requires the `speech_to_text` package.
-/// This screen uses a TextField with a mic icon as the input surface.
-/// Swap the TextField for a SpeechToText listener when the package is added.
 class VoiceLogScreen extends StatefulWidget {
   const VoiceLogScreen({super.key});
 
@@ -24,12 +18,15 @@ class _VoiceLogScreenState extends State<VoiceLogScreen>
     with SingleTickerProviderStateMixin {
   final _service = VoiceLogService();
   final _controller = TextEditingController();
+  final _speech = stt.SpeechToText();
 
   late final String _userId;
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnim;
 
   bool _isProcessing = false;
+  bool _isListening = false;
+  bool _speechAvailable = false;
   bool _isLoading = true;
   VoiceLog? _lastResult;
   List<VoiceLog> _recentLogs = [];
@@ -40,7 +37,6 @@ class _VoiceLogScreenState extends State<VoiceLogScreen>
     super.initState();
     _userId = Supabase.instance.client.auth.currentUser!.id;
 
-    // Pulse animation for the mic icon while "recording" (future use)
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -49,14 +45,75 @@ class _VoiceLogScreenState extends State<VoiceLogScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
+    _initSpeech();
     _loadRecentLogs();
+  }
+
+  Future<void> _initSpeech() async {
+    _speechAvailable = await _speech.initialize(
+      onError: (error) {
+        if (!mounted) return;
+        setState(() {
+          _isListening = false;
+          _error = 'Speech error: ${error.errorMsg}';
+        });
+        _pulseController.stop();
+        _pulseController.reset();
+      },
+      onStatus: (status) {
+        if (status == 'done' || status == 'notListening') {
+          if (!mounted) return;
+          setState(() => _isListening = false);
+          _pulseController.stop();
+          _pulseController.reset();
+        }
+      },
+    );
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _pulseController.dispose();
+    if (_isListening) _speech.stop();
     super.dispose();
+  }
+
+  Future<void> _toggleListening() async {
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+      _pulseController.stop();
+      _pulseController.reset();
+      return;
+    }
+
+    if (!_speechAvailable) {
+      setState(() => _error = 'Speech recognition is not available on this device.');
+      return;
+    }
+
+    setState(() {
+      _isListening = true;
+      _error = null;
+    });
+    _pulseController.repeat(reverse: true);
+
+    await _speech.listen(
+      onResult: (result) {
+        if (!mounted) return;
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+        });
+      },
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+      localeId: 'en_US',
+    );
   }
 
   Future<void> _loadRecentLogs() async {
@@ -79,6 +136,11 @@ class _VoiceLogScreenState extends State<VoiceLogScreen>
   Future<void> _processTranscript() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+
+    if (_isListening) {
+      await _speech.stop();
+      setState(() => _isListening = false);
+    }
 
     setState(() {
       _isProcessing = true;
@@ -138,39 +200,48 @@ class _VoiceLogScreenState extends State<VoiceLogScreen>
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Animated mic icon -- visual anchor for future speech-to-text
-            AnimatedBuilder(
-              animation: _pulseAnim,
-              builder: (context, child) => Transform.scale(
-                scale: _isProcessing ? _pulseAnim.value : 1.0,
-                child: child,
-              ),
-              child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: _isProcessing
-                        ? [AppColors.accent, AppColors.secondary]
-                        : [
-                            AppColors.primary.withValues(alpha: 0.25),
-                            AppColors.secondary.withValues(alpha: 0.25),
-                          ],
-                  ),
+            // Tap mic to start/stop voice recording
+            GestureDetector(
+              onTap: _isProcessing ? null : _toggleListening,
+              child: AnimatedBuilder(
+                animation: _pulseAnim,
+                builder: (context, child) => Transform.scale(
+                  scale: (_isProcessing || _isListening) ? _pulseAnim.value : 1.0,
+                  child: child,
                 ),
-                child: Icon(
-                  Icons.mic_rounded,
-                  size: 32,
-                  color: _isProcessing ? Colors.white : AppColors.textSecondary,
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: _isListening
+                          ? [AppColors.error, AppColors.secondary]
+                          : _isProcessing
+                              ? [AppColors.accent, AppColors.secondary]
+                              : [
+                                  AppColors.primary.withValues(alpha: 0.25),
+                                  AppColors.secondary.withValues(alpha: 0.25),
+                                ],
+                    ),
+                  ),
+                  child: Icon(
+                    _isListening ? Icons.stop_rounded : Icons.mic_rounded,
+                    size: 32,
+                    color: (_isProcessing || _isListening)
+                        ? Colors.white
+                        : AppColors.textSecondary,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              _isProcessing
-                  ? 'Processing your input...'
-                  : 'Tell VitaMind what you did',
+              _isListening
+                  ? 'Listening... Tap to stop'
+                  : _isProcessing
+                      ? 'Processing your input...'
+                      : 'Tap the mic or type below',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -185,10 +256,12 @@ class _VoiceLogScreenState extends State<VoiceLogScreen>
                     'e.g. "Finished the report, did my morning run, '
                     'add buy groceries to tasks"',
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.mic_none_rounded),
-                  color: AppColors.textTertiary,
-                  tooltip: 'Speech-to-text requires the speech_to_text package',
-                  onPressed: null, // Placeholder until package is added
+                  icon: Icon(
+                    _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                    color: _isListening ? AppColors.error : AppColors.textTertiary,
+                  ),
+                  tooltip: _isListening ? 'Stop listening' : 'Start voice input',
+                  onPressed: _isProcessing ? null : _toggleListening,
                 ),
               ),
             ),

@@ -132,7 +132,7 @@ These phases extend VitaMind toward the AI Life Intelligence Platform vision.
 
 ### Phase G -- Calendar & External Integrations
 
-- Google Calendar sync -- **Complete** (OAuth connect, event CRUD, bi-directional sync)
+- Google Calendar two-way sync -- **Complete** (OAuth connect, push tasks to calendar, import calendar events as tasks, duplicate detection)
 - Calendar-aware daily planning (AI sees your meetings) -- Planned
 - Weekly productivity email reports via Resend -- **Complete** (edge function deployed)
 - Apple Calendar sync -- Planned
@@ -164,3 +164,36 @@ These phases extend VitaMind toward the AI Life Intelligence Platform vision.
 - Razorpay integration for accountability contract financial stakes (India-first: UPI, net banking, cards, wallets)
 - Pro tier feature gating
 - Team tier: shared accountability contracts
+
+---
+
+## Next-Gen Phases -- AI Life Intelligence System
+
+These features evolve VitaMind from a productivity tool into an AI Life Intelligence System. Focus: reduce manual input, increase insight, create emotional connection.
+
+### Phase K -- Life Timeline + Life Map -- **Complete**
+
+- **Life Timeline**: Chronological timeline auto-built from tasks, goals, habits, notes, and logs. Searchable history. Auto-populated via DB triggers. Manual note/milestone creation. Full-text search. Available on Web + Mobile.
+- **Life Map**: Visual overview of 6 life domains (Health, Career, Relationships, Finance, Learning, Personal) with weighted scores (goals 50%, tasks 30%, habits 20%), radar chart visualization, domain drill-down, and template-based insights. Available on Web + Mobile.
+
+**Migrations**: `014_life_timeline.sql`, `015_life_map_domain.sql`
+
+### Phase L -- AI Life Coach + AI Life Companion
+
+- **AI Life Coach**: Behavioral pattern analysis with improvement suggestions. Detects productivity drops, suggests habit reinforcement and lifestyle adjustments. (e.g., "You skip gym when you sleep after 1AM.")
+- **AI Life Companion**: Persistent AI that learns user personality and history. Emotional support, context-aware advice, seasonal awareness. (e.g., "You usually feel less motivated in March.")
+
+### Phase M -- Decision Engine + Life Simulation
+
+- **Decision Engine**: AI-assisted decision making. Compare options, evaluate risk/benefit, align decisions with user goals. (e.g., "Should I change jobs?")
+- **Life Simulation**: Simulate future scenarios based on goals and current habits. Projects timelines for different strategies with outcome forecasting.
+
+### Phase N -- Knowledge Graph + Auto Capture
+
+- **AI Personal Knowledge Graph**: Graph of relationships between habits, goals, productivity, and outcomes. Discover hidden patterns and keystone habits. (e.g., Meditation -> Focus up -> Tasks completed up -> Goals progress up)
+- **Life Auto Capture**: Automatic data ingestion from calendar, email summaries, phone usage, health data, sleep tracking. Reduces manual input.
+
+### Phase O -- Social + Future Self
+
+- **Social Accountability Layer**: Share goals, habits, and focus sessions with friends or mentors. Friendly competition, public progress boards. (e.g., "Your friend completed 6 habits today.")
+- **Future Self**: Send messages to future self, AI predictions based on current behavior, reflection reminders. (e.g., "If current habits continue, productivity may increase 23% next year.")

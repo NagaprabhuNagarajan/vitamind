@@ -1,6 +1,6 @@
 # VitaMind -- Complete Feature List
 
-> Last updated: 2026-03-06
+> Last updated: 2026-03-06 (Sprint 3-4 updates)
 > "The AI Operating System for Your Life"
 
 ---
@@ -26,11 +26,14 @@
 - Link tasks to goals (progress tracking)
 - Recurring tasks (daily, weekly, monthly, yearly) with auto-spawn
 - Calendar event sync (tasks with due dates -> Google Calendar)
+- Calendar event import (Google Calendar events -> VitaMind tasks)
+- Cascade delete: deleting a parent task also deletes all subtasks
 - Pagination with offset-based navigation
 - Available on: Web + Mobile
 
 ### Goal Tracking
 - Create goals with title, description, target date
+- Life domain categorization (health, career, relationships, finance, learning, personal)
 - Progress tracking (0-100% range slider)
 - Link tasks to goals for automatic progress correlation
 - Goal completion marking
@@ -118,6 +121,7 @@ Analyzes correlations between habit completion and goal/task progress:
 - Acknowledging cascade alerts
 
 Dashboard widget shows unacknowledged cascade events with affected goals.
+Dedicated management UI on Goals page: view/remove links, AI-suggested links with accept, manual habit-goal link form.
 Available on: Web + Mobile
 
 ### 6. Habit Stacking Engine
@@ -136,7 +140,7 @@ AI generates week-by-week task plans for goals:
 - On-track / behind / ahead status
 - Tasks include time estimates
 
-Toggle autopilot per goal. AI recalibrates when user falls behind.
+Toggle autopilot per goal directly from goal cards (Rocket icon). AI recalibrates when user falls behind.
 Available on: Web + Mobile
 
 ### 8. Pattern Oracle
@@ -155,6 +159,7 @@ Natural language input for rapid life logging:
 - AI parses into structured actions: task completions, habit logs, notes
 - Action confirmation and auto-apply
 - Recent voice logs history
+- Mobile: native speech-to-text via speech_to_text package, tap mic to record, auto-stop after 30s/3s silence, pulsing animation
 
 Available on: Web + Mobile
 
@@ -198,10 +203,13 @@ Available on: Web + Mobile
 
 ### Google Calendar Integration
 - OAuth 2.0 connect/disconnect flow
-- Sync tasks with due dates to Google Calendar as all-day events
+- Two-way sync:
+  - **Push**: Sync VitaMind tasks with due dates to Google Calendar as all-day events
+  - **Pull**: Import Google Calendar events (next 7 days) as VitaMind tasks, with duplicate detection via calendar_event_id
 - Bi-directional tracking via calendar_event_id
 - Token refresh with 5-minute buffer
-- Settings UI with connection status, last sync time, manual sync button
+- Settings UI with connection status, last sync time, Sync Tasks button, Import Events button
+- Available on: Web + Mobile
 
 ### Weekly Email Reports
 - Automated Monday 9am UTC email via Supabase Edge Function
@@ -246,8 +254,8 @@ Available on: Web + Mobile
 - Environment variable validation (fail-fast on missing vars)
 
 ### Monitoring & Analytics
-- Sentry error tracking (web client + server + edge, mobile ready)
-- PostHog product analytics (typed events, user identification)
+- Sentry error tracking (web client + server + edge, mobile activated)
+- PostHog product analytics (typed events, user identification, mobile activated)
 - Structured JSON request logging (duration, user ID, route)
 
 ### Accessibility (WCAG 2.1 AA)
@@ -270,9 +278,77 @@ Available on: Web + Mobile
 
 ---
 
+## Next-Gen Features
+
+These features evolve VitaMind from a productivity tool into an **AI Life Intelligence System**.
+
+### 13. Life Timeline -- **Complete**
+- Chronological timeline auto-built from tasks, goals, habits, notes, and logs
+- Auto-populated via database triggers (task completed, goal achieved)
+- Manual event creation (notes, milestones) with date picker
+- Full-text search on event titles (GIN index)
+- Filter by event type (task_completed, goal_achieved, habit_streak, milestone, note)
+- Paginated, date-grouped display
+- Delete manual events (notes/milestones only)
+- Searchable history ("When did I start that project?")
+- Available on: Web + Mobile
+
+### 14. AI Life Coach
+- Behavioral pattern analysis with improvement suggestions
+- Detects productivity drops, habit reinforcement suggestions, lifestyle adjustments
+- Example: "You skipped the gym 3 times this week. You tend to skip workouts when you sleep after 1AM. Consider moving gym to evenings."
+
+### 15. Decision Engine
+- AI-assisted decision making for personal and professional choices
+- Compare options, evaluate risk/benefit, align decisions with user goals
+- Example: "Should I change jobs?", "Should I start a business?"
+
+### 16. Life Simulation
+- Simulate future scenarios based on goals and current habits
+- Projects timelines for different strategies with outcome forecasting
+- Example: Save 30% income -> achieve financial independence in 6.2 years vs start side business -> 4.1 years
+
+### 17. AI Personal Knowledge Graph
+- Graph of relationships between habits, goals, productivity, and outcomes
+- Discover hidden patterns and identify keystone habits
+- Visualization: Meditation -> Focus up -> Tasks completed up -> Goals progress up
+
+### 18. Life Auto Capture
+- Automatic data ingestion from external sources (calendar, email, phone usage, health, sleep)
+- Reduces manual input dramatically
+- Example insight: "You complete 40% more tasks on days you sleep 7+ hours"
+
+### 19. Future Self
+- Send messages to future self (time capsule)
+- AI predictions based on current behavior trajectory
+- Reflection reminders and behavioral forecasting
+- Example: "If current habits continue, productivity may increase 23% next year"
+
+### 20. Life Map -- **Complete**
+- Visual overview of 6 life domains: Health, Career, Relationships, Finance, Learning, Personal
+- SVG hexagonal radar chart with per-domain scores (web), CustomPainter radar (mobile)
+- Weighted composite score per domain: goal progress (50%) + task completion (30%) + habit consistency (20%)
+- Overall life score (average across domains)
+- Domain cards with progress bars, goal counts, expandable active goals list
+- Template-based insights per domain (e.g., "Career is on track", "Health needs attention")
+- Goals tagged by domain via `life_domain` enum column
+- Available on: Web + Mobile
+
+### 21. Social Accountability Layer
+- Share goals, habits, and focus sessions with friends or mentors
+- Friendly competition and public progress boards
+- Example: "Your friend completed 6 habits today"
+
+### 22. AI Life Companion
+- Persistent AI that learns user personality, preferences, and history over time
+- Personalized insights, emotional support, context-aware advice
+- Seasonal awareness: "You usually feel less motivated in March. Let's plan something energizing."
+
+---
+
 ## API Surface
 
-28+ REST endpoints across these domains:
+35+ REST endpoints across these domains:
 
 | Domain | Endpoints |
 |--------|-----------|
@@ -292,6 +368,8 @@ Available on: Web + Mobile
 | Life Reviews | List + generate |
 | Focus | Suggest + start/end + stats |
 | Contracts | CRUD + check-in + nudge |
-| Calendar | Connect + disconnect + sync + status |
+| Calendar | Connect + disconnect + sync + import + status |
+| Timeline | List + search + create + delete |
+| Life Map | Domain scores + radar data |
 | User | Profile CRUD + export + delete |
 | Health | Health check |

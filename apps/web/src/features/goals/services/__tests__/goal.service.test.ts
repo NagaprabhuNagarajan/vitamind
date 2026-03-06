@@ -17,6 +17,7 @@ function makeGoal(overrides: Partial<Goal> = {}): Goal {
     target_date: '2026-06-01',
     progress: 25,
     is_completed: false,
+    domain: 'personal',
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
     ...overrides,

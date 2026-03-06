@@ -120,6 +120,24 @@ class _MoreBottomSheet extends StatelessWidget {
                 },
               ),
               _MoreTile(
+                icon: Icons.timeline_outlined,
+                label: 'Life Timeline',
+                subtitle: 'Your life story, event by event',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.timeline);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.hexagon_outlined,
+                label: 'Life Map',
+                subtitle: 'Holistic view of your life domains',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.lifeMap);
+                },
+              ),
+              _MoreTile(
                 icon: Icons.center_focus_strong_outlined,
                 label: 'Focus Mode',
                 subtitle: 'AI-guided deep work sessions',

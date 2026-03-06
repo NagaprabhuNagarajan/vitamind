@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 /// PostHog analytics service for VitaMind mobile.
-///
-/// To enable: add `posthog_flutter: ^4.0.0` to pubspec.yaml and
-/// uncomment the PostHog import + initialization below.
 ///
 /// Usage:
 ///   await AnalyticsService.init(apiKey: dotenv.env['POSTHOG_KEY'] ?? '');
@@ -12,44 +10,37 @@ class AnalyticsService {
   static bool _initialized = false;
 
   /// Initialize PostHog with the given API key.
-  /// No-op if key is empty or in debug mode.
+  /// No-op if key is empty.
   static Future<void> init({required String apiKey, String? host}) async {
     if (apiKey.isEmpty) {
       debugPrint('[Analytics] Skipping — no API key');
       return;
     }
 
-    // TODO: Uncomment when posthog_flutter is added to pubspec.yaml:
-    // final config = PostHogConfig(apiKey);
-    // config.host = host ?? 'https://app.posthog.com';
-    // config.captureApplicationLifecycleEvents = true;
-    // await Posthog().setup(config);
+    final config = PostHogConfig(apiKey);
+    config.host = host ?? 'https://app.posthog.com';
+    config.captureApplicationLifecycleEvents = true;
+    await Posthog().setup(config);
     _initialized = true;
     debugPrint('[Analytics] Initialized');
   }
 
   /// Track a custom event.
-  static void track(String event, [Map<String, dynamic>? properties]) {
+  static void track(String event, [Map<String, Object>? properties]) {
     if (!_initialized) return;
-    // TODO: Uncomment when posthog_flutter is added:
-    // Posthog().capture(eventName: event, properties: properties);
-    debugPrint('[Analytics] $event ${properties ?? ''}');
+    Posthog().capture(eventName: event, properties: properties);
   }
 
   /// Identify a user after login.
-  static void identify(String userId, [Map<String, dynamic>? traits]) {
+  static void identify(String userId, [Map<String, Object>? traits]) {
     if (!_initialized) return;
-    // TODO: Uncomment when posthog_flutter is added:
-    // Posthog().identify(userId: userId, userProperties: traits);
-    debugPrint('[Analytics] Identify: $userId');
+    Posthog().identify(userId: userId, userProperties: traits);
   }
 
   /// Reset analytics on logout.
   static void reset() {
     if (!_initialized) return;
-    // TODO: Uncomment when posthog_flutter is added:
-    // Posthog().reset();
-    debugPrint('[Analytics] Reset');
+    Posthog().reset();
   }
 }
 

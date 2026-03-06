@@ -1,14 +1,10 @@
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Sentry error monitoring service.
 ///
-/// Wraps the Sentry SDK so the app can report errors to Sentry in production.
-/// To enable: add `sentry_flutter: ^8.3.0` to pubspec.yaml and uncomment
-/// the import + initialization below.
-///
 /// Usage in main.dart:
 ///   await SentryService.init(dsn: dotenv.env['SENTRY_DSN'] ?? '');
-///   // Then wrap runApp:
 ///   SentryService.runGuarded(() => runApp(const VitaMindApp()));
 class SentryService {
   static bool _initialized = false;
@@ -21,14 +17,13 @@ class SentryService {
       return;
     }
 
-    // TODO: Uncomment when sentry_flutter is added to pubspec.yaml:
-    // await SentryFlutter.init(
-    //   (options) {
-    //     options.dsn = dsn;
-    //     options.tracesSampleRate = 0.1;
-    //     options.environment = kReleaseMode ? 'production' : 'development';
-    //   },
-    // );
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = dsn;
+        options.tracesSampleRate = 0.1;
+        options.environment = kReleaseMode ? 'production' : 'development';
+      },
+    );
     _initialized = true;
     debugPrint('[SentryService] Initialized');
   }
@@ -36,20 +31,15 @@ class SentryService {
   /// Capture an exception and send to Sentry.
   static void captureException(Object exception, {StackTrace? stackTrace}) {
     if (!_initialized) return;
-    // TODO: Uncomment when sentry_flutter is added:
-    // Sentry.captureException(exception, stackTrace: stackTrace);
-    debugPrint('[SentryService] Captured: $exception');
+    Sentry.captureException(exception, stackTrace: stackTrace);
   }
 
   /// Run the app inside Sentry's error zone.
-  static Future<void> runGuarded(void Function() appRunner) async {
-    // TODO: Uncomment when sentry_flutter is added:
-    // if (_initialized) {
-    //   await SentryFlutter.init(...);  // Already called in init()
-    //   appRunner();
-    // } else {
-    //   appRunner();
-    // }
-    appRunner();
+  static Future<void> runGuarded(Future<void> Function() appRunner) async {
+    if (_initialized) {
+      await appRunner();
+    } else {
+      await appRunner();
+    }
   }
 }
