@@ -11,6 +11,10 @@ class AppBottomNav extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
       builder: (_) => _MoreBottomSheet(parentContext: context),
     );
   }
@@ -92,48 +96,149 @@ class _MoreBottomSheet extends StatelessWidget {
         ),
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textTertiary.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textTertiary.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            _MoreTile(
-              icon: Icons.auto_awesome_outlined,
-              label: 'AI Assistant',
-              subtitle: 'Chat with your life coach',
-              onTap: () {
-                Navigator.of(context).pop();
-                parentContext.go(Routes.ai);
-              },
-            ),
-            _MoreTile(
-              icon: Icons.calendar_today_outlined,
-              label: 'Planner',
-              subtitle: 'AI-generated daily plan',
-              onTap: () {
-                Navigator.of(context).pop();
-                parentContext.go(Routes.planner);
-              },
-            ),
-            _MoreTile(
-              icon: Icons.settings_outlined,
-              label: 'Settings',
-              subtitle: 'Profile, account, preferences',
-              onTap: () {
-                Navigator.of(context).pop();
-                parentContext.go(Routes.settings);
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
+              _MoreTile(
+                icon: Icons.speed_outlined,
+                label: 'Momentum',
+                subtitle: 'Life momentum score',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.momentum);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.center_focus_strong_outlined,
+                label: 'Focus Mode',
+                subtitle: 'AI-guided deep work sessions',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.focus);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.mic_outlined,
+                label: 'Voice Log',
+                subtitle: 'Speak to log your day',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.voiceLog);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.auto_graph_outlined,
+                label: 'Patterns',
+                subtitle: 'Discover hidden correlations',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.patterns);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.menu_book_outlined,
+                label: 'Reviews',
+                subtitle: 'Monthly life reviews',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.reviews);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.shield_outlined,
+                label: 'Burnout Radar',
+                subtitle: 'Early burnout detection',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.burnout);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.account_tree_outlined,
+                label: 'Cascades',
+                subtitle: 'Habit-goal ripple effects',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.cascade);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.stacked_bar_chart_outlined,
+                label: 'Habit Stacks',
+                subtitle: 'Chain habits together',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.habitStacks);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.rocket_launch_outlined,
+                label: 'Goal Autopilot',
+                subtitle: 'AI-managed goal plans',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.goalAutopilot);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.handshake_outlined,
+                label: 'Contracts',
+                subtitle: 'Accountability with stakes',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.contracts);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.fingerprint_outlined,
+                label: 'Time Fingerprint',
+                subtitle: 'Your productivity profile',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.timeFingerprint);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.auto_awesome_outlined,
+                label: 'AI Assistant',
+                subtitle: 'Chat with your life coach',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.ai);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.calendar_today_outlined,
+                label: 'Planner',
+                subtitle: 'AI-generated daily plan',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.planner);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.settings_outlined,
+                label: 'Settings',
+                subtitle: 'Profile, account, preferences',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.settings);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );

@@ -5,7 +5,7 @@
 
 type NextRouteHandler = (
   request: Request,
-  context?: { params: Promise<Record<string, string>> },
+  context: { params: Promise<Record<string, string>> },
 ) => Promise<Response>
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

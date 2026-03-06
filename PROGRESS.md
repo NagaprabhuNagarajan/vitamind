@@ -6,7 +6,7 @@
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 58    | 58        | 0           | 0       |
+| 102   | 102       | 0           | 0       |
 
 ---
 
@@ -494,10 +494,353 @@
 
 ---
 
-## Remaining Work (Backlog)
+## Phase 26 -- Killer Feature A: Life Momentum Score
 
-All planned items complete. Future improvements:
+| Task | Status |
+|------|--------|
+| 26A -- Database schema (momentum_snapshots table) | Done |
+| 26B -- Momentum service (compute + store, on-demand scoring) | Done |
+| 26C -- Momentum API endpoint (GET /api/v1/momentum) | Done |
+| 26D -- Momentum dashboard widget (score ring, component bars, sparkline, burnout warning) | Done |
+| 26E -- Daily compute edge function (pg_cron scheduled) | Done |
 
-- **E2E tests in CI** -- Playwright in GitHub Actions with test Supabase instance
-- **Preview deployments** -- Vercel preview on PR
-- **Release automation** -- semantic versioning + changelog generation
+**New files:**
+- `backend/supabase/migrations/007_momentum_score.sql` -- momentum_snapshots table, RLS, index
+- `apps/web/src/features/momentum/types.ts` -- MomentumSnapshot, MomentumResponse, MomentumComponents
+- `apps/web/src/features/momentum/services/momentum.service.ts` -- getCurrentScore, getHistory, computeComponents, computeAndStore
+- `apps/web/src/app/api/v1/momentum/route.ts` -- GET with trend calculation
+- `apps/web/src/app/(dashboard)/dashboard/momentum-score.tsx` -- client widget with SVG ring, bars, sparkline
+- `backend/supabase/functions/compute-momentum/index.ts` -- daily cron edge function
+
+**Modified:**
+- `apps/web/src/app/(dashboard)/dashboard/page.tsx` -- added MomentumScore widget
+
+---
+
+## Phase 27 -- Killer Feature A: Time Fingerprint
+
+| Task | Status |
+|------|--------|
+| 27A -- Database schema (productivity_profile JSONB on users) | Done |
+| 27B -- Time fingerprint service (compute + cache with 7-day TTL) | Done |
+| 27C -- Time fingerprint API endpoint (GET /api/v1/time-fingerprint) | Done |
+| 27D -- Weekly compute edge function (pg_cron scheduled) | Done |
+| 27E -- Settings UI section (peak hours, best window, habit patterns) | Done |
+| 27F -- AI integration (momentum + fingerprint in context + prompts) | Done |
+
+**New files:**
+- `backend/supabase/migrations/008_time_fingerprint.sql` -- productivity_profile JSONB column on users
+- `apps/web/src/features/time-fingerprint/services/time-fingerprint.service.ts` -- getProfile, hasEnoughData, computeProfile
+- `apps/web/src/app/api/v1/time-fingerprint/route.ts` -- GET endpoint
+- `backend/supabase/functions/compute-time-fingerprint/index.ts` -- weekly cron edge function
+- `apps/web/src/app/(dashboard)/settings/time-fingerprint-section.tsx` -- productivity profile display
+
+**Modified:**
+- `apps/web/src/features/ai/services/context.ts` -- fetches momentum + fingerprint in parallel
+- `apps/web/src/features/ai/services/prompt-builder.ts` -- includes momentum score + fingerprint data in daily plan + insights prompts
+- `apps/web/src/app/(dashboard)/settings/page.tsx` -- added TimeFingerprintSection
+
+---
+
+## Phase 28 -- Killer Feature B: Burnout Radar
+
+| Task | Status |
+|------|--------|
+| 28A -- Database schema (burnout_alerts table) | Done |
+| 28B -- Burnout Radar service (multi-signal detection + AI recovery plans) | Done |
+| 28C -- Burnout Radar API endpoints (GET radar + PUT acknowledge) | Done |
+| 28D -- Burnout Radar dashboard widget (collapsible, signals, recovery plan) | Done |
+| 28E -- AI daily plan integration (burnout-aware suggestions) | Done |
+
+**New files:**
+- `backend/supabase/migrations/009_burnout_decomposition.sql` -- burnout_alerts table + estimated_minutes/is_subtask on tasks
+- `apps/web/src/features/burnout-radar/types.ts` -- BurnoutSignals, BurnoutAlert, BurnoutRadarResponse
+- `apps/web/src/features/burnout-radar/services/burnout-radar.service.ts` -- detectSignals, generateRecoveryPlan, computeAndStore
+- `apps/web/src/app/api/v1/burnout-radar/route.ts` -- GET + PUT endpoints
+- `apps/web/src/app/(dashboard)/dashboard/burnout-radar.tsx` -- collapsible radar widget
+
+**Modified:**
+- `apps/web/src/app/(dashboard)/dashboard/page.tsx` -- added BurnoutRadar widget
+
+---
+
+## Phase 29 -- Killer Feature B: Smart Task Decomposition
+
+| Task | Status |
+|------|--------|
+| 29A -- Database schema (estimated_minutes + is_subtask columns on tasks) | Done |
+| 29B -- Decomposition service (AI-powered task breakdown + subtask creation) | Done |
+| 29C -- Decomposition API endpoint (POST /api/v1/tasks/decompose) | Done |
+| 29D -- Task list UI (break down menu action, subtask badge, time estimates) | Done |
+| 29E -- Type updates (estimated_minutes, is_subtask on Task interface) | Done |
+
+**New files:**
+- `apps/web/src/features/smart-decomposition/services/decomposition.service.ts` -- decompose, getSubtasks, updateParentProgress
+- `apps/web/src/app/api/v1/tasks/decompose/route.ts` -- POST endpoint
+
+**Modified:**
+- `apps/web/src/lib/types/index.ts` -- added estimated_minutes, is_subtask to Task
+- `apps/web/src/app/(dashboard)/tasks/task-list.tsx` -- "Break down" menu action, subtask badge, time estimate display
+
+---
+
+## Phase 30 -- Killer Feature C: Cascade Intelligence
+
+| Task | Status |
+|------|--------|
+| 30A -- Database schema (habit_goal_links, cascade_events tables) | Done |
+| 30B -- Cascade service (habit-goal linking, ripple detection, AI suggestions) | Done |
+| 30C -- Cascade API endpoints (GET view, POST link/unlink/acknowledge/suggest) | Done |
+| 30D -- Cascade alerts dashboard widget (collapsible, affected goals, suggestions) | Done |
+| 30E -- Auto-suggest habit-goal links via AI | Done |
+
+**New files:**
+- `backend/supabase/migrations/010_cascade_stacking.sql` -- habit_goal_links, habit_stacks, cascade_events tables
+- `apps/web/src/features/cascade-intelligence/types.ts` -- HabitGoalLink, CascadeEvent, CascadeAnalysis
+- `apps/web/src/features/cascade-intelligence/services/cascade.service.ts` -- detectCascades, generateSuggestions, suggestLinks
+- `apps/web/src/app/api/v1/cascade/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/dashboard/cascade-alerts.tsx` -- collapsible alert widget
+
+**Modified:**
+- `apps/web/src/app/(dashboard)/dashboard/page.tsx` -- added CascadeAlerts widget
+
+---
+
+## Phase 31 -- Killer Feature C: Habit Stacking Engine
+
+| Task | Status |
+|------|--------|
+| 31A -- Database schema (habit_stacks table) | Done |
+| 31B -- Stacking service (temporal analysis, stack suggestions, bulk completion) | Done |
+| 31C -- Stacking API endpoints (GET stacks+suggestions, POST create/complete/delete) | Done |
+| 31D -- Habit stacks UI on habits page (active stacks, "Start stack", suggestions) | Done |
+| 31E -- Habits page integration | Done |
+| 31F -- Stack completion rate tracking (14-day window) | Done |
+
+**New files:**
+- `apps/web/src/features/habit-stacking/types.ts` -- HabitStack, StackWithHabits, StackSuggestion
+- `apps/web/src/features/habit-stacking/services/stacking.service.ts` -- getStacks, suggestStacks, completeStack
+- `apps/web/src/app/api/v1/habit-stacks/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/habits/habit-stacks.tsx` -- stacks + suggestions UI
+
+**Modified:**
+- `apps/web/src/app/(dashboard)/habits/page.tsx` -- added HabitStacks component
+
+---
+
+## Phase 32 -- Killer Feature D: Goal Autopilot
+
+| Task | Status |
+|------|--------|
+| 32A -- Database schema (goal_plans table, autopilot_enabled on goals) | Done |
+| 32B -- Autopilot service (AI task generation, weekly adjustment) | Done |
+| 32C -- Autopilot API endpoints (GET status, POST enable/disable/adjust) | Done |
+| 32D -- Goal Autopilot UI on goals page (toggle, plan preview, on-track status) | Done |
+| 32E -- Auto-creates real tasks linked to goal with time estimates | Done |
+
+**New files:**
+- `backend/supabase/migrations/011_autopilot_patterns.sql` -- goal_plans, pattern_insights tables, autopilot_enabled column
+- `apps/web/src/features/goal-autopilot/types.ts` -- GoalPlan, GeneratedTask, AutopilotStatus
+- `apps/web/src/features/goal-autopilot/services/autopilot.service.ts` -- enableAutopilot, generateWeeklyPlan, adjustPlan
+- `apps/web/src/app/api/v1/goal-autopilot/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/goals/goal-autopilot.tsx` -- autopilot toggle + plan preview
+
+**Modified:**
+- `apps/web/src/app/(dashboard)/goals/page.tsx` -- added GoalAutopilot component
+
+---
+
+## Phase 33 -- Killer Feature D: Pattern Oracle
+
+| Task | Status |
+|------|--------|
+| 33A -- Database schema (pattern_insights table) | Done |
+| 33B -- Oracle service (correlation analysis, keystone habit detection, day/time patterns) | Done |
+| 33C -- Oracle API endpoints (GET insights, POST dismiss/refresh) | Done |
+| 33D -- Patterns page with insight cards + keystone habit highlight | Done |
+| 33E -- Sidebar navigation link to Patterns | Done |
+| 33F -- Loading skeleton for Patterns page | Done |
+
+**New files:**
+- `apps/web/src/features/pattern-oracle/types.ts` -- PatternInsight, PatternOracleResponse
+- `apps/web/src/features/pattern-oracle/services/oracle.service.ts` -- getInsights, computeInsights, dismiss
+- `apps/web/src/app/api/v1/patterns/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/patterns/page.tsx` -- Patterns page
+- `apps/web/src/app/(dashboard)/patterns/patterns-list.tsx` -- insight cards, keystone highlight, refresh
+- `apps/web/src/app/(dashboard)/patterns/loading.tsx` -- loading skeleton
+
+**Modified:**
+- `apps/web/src/components/layout/sidebar.tsx` -- added Patterns nav item
+
+---
+
+## Phase 34 -- Killer Feature E: Voice Life Log
+
+| Task | Status |
+|------|--------|
+| 34A -- Database schema (voice_logs table) | Done |
+| 34B -- Voice Log service (AI transcript parsing, action extraction, auto-apply) | Done |
+| 34C -- Voice Log API endpoints (GET recent, POST process transcript) | Done |
+| 34D -- Voice Log dashboard widget (browser speech-to-text, live transcript, action results) | Done |
+
+**New files:**
+- `backend/supabase/migrations/012_voice_reviews.sql` -- voice_logs + life_reviews tables
+- `apps/web/src/features/voice-log/types.ts` -- ExtractedActions, VoiceLog
+- `apps/web/src/features/voice-log/services/voice-log.service.ts` -- processTranscript, getRecent
+- `apps/web/src/app/api/v1/voice-log/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/dashboard/voice-log-widget.tsx` -- speech recording widget
+
+**Modified:**
+- `apps/web/src/app/(dashboard)/dashboard/page.tsx` -- added VoiceLogWidget
+
+---
+
+## Phase 35 -- Killer Feature E: Life Review (Monthly Deep Dive)
+
+| Task | Status |
+|------|--------|
+| 35A -- Database schema (life_reviews table) | Done |
+| 35B -- Life Review service (cross-domain data gathering, AI report generation) | Done |
+| 35C -- Life Review API endpoints (GET reviews, POST generate) | Done |
+| 35D -- Reviews page (list view, detail view with stats, AI report) | Done |
+| 35E -- Loading skeleton for Reviews page | Done |
+| 35F -- Sidebar navigation link to Reviews | Done |
+
+**New files:**
+- `apps/web/src/features/life-review/types.ts` -- ReviewData, LifeReview
+- `apps/web/src/features/life-review/services/review.service.ts` -- getReview, getAllReviews, generateReview
+- `apps/web/src/app/api/v1/life-reviews/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/reviews/page.tsx` -- reviews list + detail view
+- `apps/web/src/app/(dashboard)/reviews/loading.tsx` -- loading skeleton
+
+**Modified:**
+- `apps/web/src/components/layout/sidebar.tsx` -- added Reviews nav item (BookOpen icon)
+
+---
+
+## Phase 36 -- Killer Feature F: Focus Contracts (Deep Work Blocks)
+
+| Task | Status |
+|------|--------|
+| 36A -- Database schema (focus_blocks table) | Done |
+| 36B -- Focus service (AI task suggestions, start/end blocks, focus scoring) | Done |
+| 36C -- Focus API endpoints (GET stats, POST suggest/start/end) | Done |
+| 36D -- Focus page (timer, task selection, interruption tracking, session history) | Done |
+| 36E -- Loading skeleton for Focus page | Done |
+| 36F -- Sidebar navigation link to Focus | Done |
+
+**New files:**
+- `backend/supabase/migrations/013_focus_accountability.sql` -- focus_blocks, contracts, contract_checkins tables
+- `apps/web/src/features/focus-contracts/types.ts` -- FocusBlock, FocusSuggestion, FocusStats
+- `apps/web/src/features/focus-contracts/services/focus.service.ts` -- suggestTasks, startBlock, endBlock, getStats
+- `apps/web/src/app/api/v1/focus/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/focus/page.tsx` -- focus mode page with timer + AI suggestions
+- `apps/web/src/app/(dashboard)/focus/loading.tsx` -- loading skeleton
+
+**Modified:**
+- `apps/web/src/components/layout/sidebar.tsx` -- added Focus nav item (Crosshair icon)
+
+---
+
+## Phase 37 -- Killer Feature F: Accountability Contracts
+
+| Task | Status |
+|------|--------|
+| 37A -- Database schema (contracts + contract_checkins tables) | Done |
+| 37B -- Accountability service (create, auto/manual check-in, AI nudges) | Done |
+| 37C -- Accountability API endpoints (GET contracts, POST create/checkin/cancel/nudge) | Done |
+| 37D -- Contracts page (create form, active contracts, check-in dots, AI nudge, past contracts) | Done |
+| 37E -- Loading skeleton for Contracts page | Done |
+| 37F -- Sidebar navigation link to Contracts | Done |
+
+**New files:**
+- `apps/web/src/features/accountability/types.ts` -- Contract, ContractCheckin, ContractWithCheckins
+- `apps/web/src/features/accountability/services/accountability.service.ts` -- create, autoCheckIn, manualCheckIn, getNudge
+- `apps/web/src/app/api/v1/contracts/route.ts` -- GET + POST endpoints
+- `apps/web/src/app/(dashboard)/contracts/page.tsx` -- accountability contracts page
+- `apps/web/src/app/(dashboard)/contracts/loading.tsx` -- loading skeleton
+
+**Modified:**
+- `apps/web/src/components/layout/sidebar.tsx` -- added Contracts nav item (Shield icon)
+
+---
+
+## ALL 12 KILLER FEATURES COMPLETE (WEB)
+
+| # | Feature | Phase | Status |
+|---|---------|-------|--------|
+| 1 | Life Momentum Score | 26 | Done |
+| 2 | Time Fingerprint | 27 | Done |
+| 3 | Burnout Radar | 28 | Done |
+| 4 | Smart Task Decomposition | 29 | Done |
+| 5 | Cascade Intelligence | 30 | Done |
+| 6 | Habit Stacking Engine | 31 | Done |
+| 7 | Goal Autopilot | 32 | Done |
+| 8 | Pattern Oracle | 33 | Done |
+| 9 | Voice Life Log | 34 | Done |
+| 10 | Life Review | 35 | Done |
+| 11 | Focus Contracts | 36 | Done |
+| 12 | Accountability Contracts | 37 | Done |
+
+---
+
+## Phase 38 -- Mobile: All 12 Killer Features
+
+| Task | Status |
+|------|--------|
+| 38A -- Data services for all 12 features (Supabase + CacheService) | Done |
+| 38B -- Screens for 11 features (Smart Decomposition has no dedicated screen) | Done |
+| 38C -- Router + bottom nav updated with 11 new routes | Done |
+| 38D -- Dashboard enhanced with Momentum Score + Burnout Alert widgets | Done |
+| 38E -- All screens pass `flutter analyze` with zero issues | Done |
+
+**New data services (12 files):**
+- `apps/mobile/lib/features/momentum/data/momentum_service.dart` -- MomentumSnapshot model, fetchCurrent/fetchHistory
+- `apps/mobile/lib/features/burnout/data/burnout_service.dart` -- BurnoutAlert model with copyWith, fetchLatest/acknowledge
+- `apps/mobile/lib/features/patterns/data/patterns_service.dart` -- PatternInsight model, fetchInsights/getKeystoneHabit/dismiss
+- `apps/mobile/lib/features/voice_log/data/voice_log_service.dart` -- VoiceLog model, fetchRecent/submitLog
+- `apps/mobile/lib/features/life_review/data/life_review_service.dart` -- LifeReview model, fetchAll/fetchByMonth
+- `apps/mobile/lib/features/focus/data/focus_service.dart` -- FocusBlock model, startBlock/endBlock/getRecent/getActive
+- `apps/mobile/lib/features/time_fingerprint/data/time_fingerprint_service.dart` -- ProductivityProfile model, fetchProfile
+- `apps/mobile/lib/features/cascade/data/cascade_service.dart` -- CascadeEvent/HabitGoalLink models, fetchCascades/fetchLinks/acknowledge
+- `apps/mobile/lib/features/habit_stacking/data/habit_stacking_service.dart` -- HabitStack model, fetchStacks/createStack/completeStack/deleteStack
+- `apps/mobile/lib/features/goal_autopilot/data/goal_autopilot_service.dart` -- GoalPlan model, getAutopilotGoals/toggleAutopilot/fetchPlans
+- `apps/mobile/lib/features/decomposition/data/decomposition_service.dart` -- decompose/getSubtasks
+- `apps/mobile/lib/features/accountability/data/accountability_service.dart` -- Contract/ContractCheckin models, fetchAll/create/checkin/cancel/fetchCheckins
+
+**New screens (11 files):**
+- `apps/mobile/lib/features/momentum/presentation/screens/momentum_screen.dart` -- animated score ring, component breakdown, history badges
+- `apps/mobile/lib/features/burnout/presentation/screens/burnout_screen.dart` -- risk score, signal list, recovery plan, acknowledge
+- `apps/mobile/lib/features/patterns/presentation/screens/patterns_screen.dart` -- keystone habit, insight cards with confidence bars, dismiss
+- `apps/mobile/lib/features/life_review/presentation/screens/reviews_screen.dart` -- review list, generate buttons, detail page with stats + AI report
+- `apps/mobile/lib/features/focus/presentation/screens/focus_screen.dart` -- timer with countdown, duration picker, interruption counter, session history
+- `apps/mobile/lib/features/voice_log/presentation/screens/voice_log_screen.dart` -- text input with mic icon, action results, recent logs
+- `apps/mobile/lib/features/cascade/presentation/screens/cascade_screen.dart` -- active alerts with missed days/affected goals, habit-goal links
+- `apps/mobile/lib/features/habit_stacking/presentation/screens/habit_stacks_screen.dart` -- stack cards, complete button, create bottom sheet
+- `apps/mobile/lib/features/goal_autopilot/presentation/screens/goal_autopilot_screen.dart` -- autopilot toggle, progress bars, recent plans
+- `apps/mobile/lib/features/time_fingerprint/presentation/screens/time_fingerprint_screen.dart` -- peak hours, best window, best/worst days, habit rates
+- `apps/mobile/lib/features/accountability/presentation/screens/contracts_screen.dart` -- create form, active contracts with 14-day check-in dots, streak, cancel
+
+**Modified:**
+- `apps/mobile/lib/core/router/app_router.dart` -- 11 new route constants + GoRoute entries
+- `apps/mobile/lib/core/widgets/app_bottom_nav.dart` -- scrollable "More" sheet with 14 tiles for all features
+- `apps/mobile/lib/features/dashboard/presentation/screens/dashboard_screen.dart` -- Momentum + Burnout widgets, parallel data fetching
+
+---
+
+## ALL 12 KILLER FEATURES COMPLETE (WEB + MOBILE)
+
+| # | Feature | Web | Mobile |
+|---|---------|-----|--------|
+| 1 | Life Momentum Score | Done | Done |
+| 2 | Time Fingerprint | Done | Done |
+| 3 | Burnout Radar | Done | Done |
+| 4 | Smart Task Decomposition | Done | Done (service only) |
+| 5 | Cascade Intelligence | Done | Done |
+| 6 | Habit Stacking Engine | Done | Done |
+| 7 | Goal Autopilot | Done | Done |
+| 8 | Pattern Oracle | Done | Done |
+| 9 | Voice Life Log | Done | Done |
+| 10 | Life Review | Done | Done |
+| 11 | Focus Contracts | Done | Done |
+| 12 | Accountability Contracts | Done | Done |

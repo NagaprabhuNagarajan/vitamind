@@ -6,6 +6,7 @@ import { withCors, OPTIONS } from '@/lib/api/cors'
 import { withLogging } from '@/lib/api/logger'
 import { validateString, validateDate, validateNumber } from '@/lib/api/validation'
 import { GoalService } from '@/features/goals/services/goal.service'
+import type { CreateGoalInput } from '@/features/goals/types'
 
 export { OPTIONS }
 
@@ -33,7 +34,7 @@ export const POST = withLogging(withCors(withRateLimit(async (request: Request) 
       progress: validateNumber(body.progress, 'progress', { min: 0, max: 100, integer: true }),
     }
 
-    const goal = await GoalService.create(user.id, validated)
+    const goal = await GoalService.create(user.id, validated as CreateGoalInput)
     return successResponse(goal, 201)
   } catch (error) {
     return errorResponse(error)

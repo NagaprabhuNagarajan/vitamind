@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { cn, PRIORITY_COLOR, PRIORITY_LABEL, formatDate, isOverdue } from '@/lib/utils'
 import {
   Circle, CheckCircle2, MoreHorizontal,
-  Play, CheckCheck, RotateCcw, Trash2, Search, Repeat,
+  Play, CheckCheck, RotateCcw, Trash2, Search, Repeat, Sparkles, Clock,
 } from 'lucide-react'
 import type { Task, Goal, TaskStatus, Priority } from '@/lib/types'
 
@@ -130,7 +130,7 @@ function ConfirmDialog({ pending, onConfirm, onCancel }: {
 
 function TaskMenu({ task, onAction }: {
   task: Task
-  onAction: (type: 'start' | ConfirmType | 'delete') => void
+  onAction: (type: 'start' | ConfirmType | 'delete' | 'decompose') => void
 }) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -176,6 +176,9 @@ function TaskMenu({ task, onAction }: {
   }
   if (task.status === 'completed') {
     items.push({ label: 'Revert to To do', icon: <RotateCcw className="w-4 h-4" />, action: 'revert', color: '#fbbf24' })
+  }
+  if (!task.is_subtask && task.status !== 'completed') {
+    items.push({ label: 'Break down', icon: <Sparkles className="w-4 h-4" />, action: 'decompose', color: '#A855F7' })
   }
   items.push({ label: 'Delete task', icon: <Trash2 className="w-4 h-4" />, action: 'delete', color: '#f87171' })
 
@@ -284,9 +287,30 @@ export function TaskList({ initialTasks, goals }: TaskListProps) {
     }
   }
 
-  function handleMenuAction(task: Task, action: 'start' | ConfirmType | 'delete') {
+  async function handleDecompose(taskId: string) {
+    setActing(taskId)
+    try {
+      const res = await fetch('/api/v1/tasks/decompose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId }),
+      })
+      if (res.ok) {
+        const { data } = await res.json()
+        if (data?.subtasks) {
+          setTasks(prev => [...prev, ...data.subtasks])
+        }
+        router.refresh()
+      }
+    } finally {
+      setActing(null)
+    }
+  }
+
+  function handleMenuAction(task: Task, action: 'start' | ConfirmType | 'delete' | 'decompose') {
     if (action === 'start') return applyStatus(task.id, 'in_progress')
     if (action === 'delete') return handleDelete(task.id)
+    if (action === 'decompose') return handleDecompose(task.id)
     setPending({ task, type: action })
   }
 
@@ -368,8 +392,16 @@ export function TaskList({ initialTasks, goals }: TaskListProps) {
                       {task.is_recurring && (
                         <Repeat className="w-3.5 h-3.5 text-primary flex-shrink-0" aria-label="Recurring task" />
                       )}
+                      {task.is_subtask && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 flex-shrink-0">subtask</span>
+                      )}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {task.estimated_minutes && (
+                        <span className="text-xs text-text-tertiary flex items-center gap-0.5">
+                          <Clock className="w-3 h-3" />{task.estimated_minutes}m
+                        </span>
+                      )}
                       {task.due_date && (
                         <span className={cn('text-xs', overdue ? 'text-red-500' : 'text-text-tertiary')}>
                           {overdue ? '⚠ Overdue · ' : ''}{formatDate(task.due_date)}
@@ -385,7 +417,7 @@ export function TaskList({ initialTasks, goals }: TaskListProps) {
 
                   <TaskMenu
                     task={task}
-                    onAction={action => handleMenuAction(task, action)}
+                    onAction={action => handleMenuAction(task, action as 'start' | ConfirmType | 'delete' | 'decompose')}
                   />
                 </div>
               )

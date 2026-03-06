@@ -68,6 +68,7 @@ Extends Supabase `auth.users` with app-level profile data. Rows are auto-created
 | `avatar_url`| `TEXT`        | YES      | `NULL`      | --                                       |
 | `timezone`  | `TEXT`        | NO       | `'UTC'`     | --                                       |
 | `fcm_token` | `TEXT`        | YES      | `NULL`      | Added in migration 003                   |
+| `productivity_profile` | `JSONB` | YES | `NULL`     | Time Fingerprint data (peak_hours, low_hours, best_day, habit_morning_rate, habit_evening_rate) |
 | `created_at`| `TIMESTAMPTZ` | NO       | `NOW()`     | --                                       |
 | `updated_at`| `TIMESTAMPTZ` | NO       | `NOW()`     | Auto-updated by trigger                  |
 
@@ -101,6 +102,7 @@ User tasks with priority, status, and optional linkage to a goal.
 | `priority`     | `task_priority` | NO       | `'medium'`           | --                                       |
 | `status`       | `task_status`   | NO       | `'todo'`             | --                                       |
 | `due_date`     | `DATE`          | YES      | `NULL`               | --                                       |
+| `estimated_minutes` | `INTEGER`  | YES      | `NULL`               | AI-estimated or user-set time estimate   |
 | `completed_at` | `TIMESTAMPTZ`   | YES      | `NULL`               | --                                       |
 | `created_at`   | `TIMESTAMPTZ`   | NO       | `NOW()`              | --                                       |
 | `updated_at`   | `TIMESTAMPTZ`   | NO       | `NOW()`              | Auto-updated by trigger                  |
@@ -160,6 +162,94 @@ AI-generated insights, daily plans, and productivity recommendations. Typically 
 | `content`   | `TEXT`         | NO       | --                   | --                                       |
 | `metadata`  | `JSONB`        | YES      | `'{}'`               | Stores model info, token usage, cached flag |
 | `created_at`| `TIMESTAMPTZ`  | NO       | `NOW()`              | --                                       |
+
+### momentum_snapshots
+
+Daily snapshot of a user's Life Momentum Score and its component signals. Computed by a scheduled job, one row per user per day.
+
+| Column              | Type          | Nullable | Default              | Constraints                              |
+| ------------------- | ------------- | -------- | -------------------- | ---------------------------------------- |
+| `id`                | `UUID`        | NO       | `uuid_generate_v4()` | PK                                       |
+| `user_id`           | `UUID`        | NO       | --                   | FK -> `users(id)` ON DELETE CASCADE      |
+| `date`              | `DATE`        | NO       | --                   | --                                       |
+| `score`             | `SMALLINT`    | NO       | --                   | CHECK: 0-100                             |
+| `task_velocity`     | `REAL`        | NO       | `0`                  | 0-100, % of tasks completed on time (7d) |
+| `habit_consistency` | `REAL`        | NO       | `0`                  | 0-100, % of habits completed vs expected (7d) |
+| `goal_trajectory`   | `REAL`        | NO       | `0`                  | 0-100, weighted avg goal progress vs pace |
+| `overdue_pressure`  | `REAL`        | NO       | `0`                  | 0-1, ratio of overdue tasks to total     |
+| `burnout_risk`      | `REAL`        | NO       | `0`                  | 0-1, multi-signal burnout risk score     |
+| `created_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | --                                       |
+
+**Unique constraint**: `UNIQUE (user_id, date)` -- one snapshot per user per day.
+
+### habit_goal_links
+
+Maps relationships between habits and goals with impact weights. Links can be created manually by users or discovered by AI cascade analysis.
+
+| Column         | Type          | Nullable | Default              | Constraints                              |
+| -------------- | ------------- | -------- | -------------------- | ---------------------------------------- |
+| `id`           | `UUID`        | NO       | `uuid_generate_v4()` | PK                                       |
+| `habit_id`     | `UUID`        | NO       | --                   | FK -> `habits(id)` ON DELETE CASCADE     |
+| `goal_id`      | `UUID`        | NO       | --                   | FK -> `goals(id)` ON DELETE CASCADE      |
+| `impact_weight`| `REAL`        | NO       | `0.5`                | CHECK: 0-1, strength of habit-goal relationship |
+| `created_by`   | `TEXT`        | NO       | `'user'`             | CHECK: `'user'` or `'ai'`               |
+| `created_at`   | `TIMESTAMPTZ` | NO       | `NOW()`              | --                                       |
+
+**Unique constraint**: `UNIQUE (habit_id, goal_id)` -- one link per habit-goal pair.
+
+### focus_blocks
+
+Tracks user focus sessions with planned tasks, actual results, and interruptions.
+
+| Column              | Type          | Nullable | Default              | Constraints                              |
+| ------------------- | ------------- | -------- | -------------------- | ---------------------------------------- |
+| `id`                | `UUID`        | NO       | `uuid_generate_v4()` | PK                                       |
+| `user_id`           | `UUID`        | NO       | --                   | FK -> `users(id)` ON DELETE CASCADE      |
+| `planned_task_ids`  | `UUID[]`      | NO       | --                   | Array of task IDs planned for this block |
+| `completed_task_ids`| `UUID[]`      | YES      | `'{}'`               | Array of task IDs actually completed     |
+| `start_time`        | `TIMESTAMPTZ` | NO       | --                   | --                                       |
+| `end_time`          | `TIMESTAMPTZ` | YES      | `NULL`               | NULL while focus block is active         |
+| `focus_score`       | `SMALLINT`    | YES      | `NULL`               | CHECK: 0-100, computed when block ends   |
+| `interruptions`     | `INTEGER`     | NO       | `0`                  | User-reported interruption count         |
+| `status`            | `TEXT`        | NO       | `'active'`           | CHECK: `'active'`, `'completed'`, `'cancelled'` |
+| `created_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | --                                       |
+
+### contracts
+
+Accountability contracts with optional financial stakes. Users commit to goals with deadlines and check-in schedules.
+
+| Column              | Type          | Nullable | Default              | Constraints                              |
+| ------------------- | ------------- | -------- | -------------------- | ---------------------------------------- |
+| `id`                | `UUID`        | NO       | `uuid_generate_v4()` | PK                                       |
+| `user_id`           | `UUID`        | NO       | --                   | FK -> `users(id)` ON DELETE CASCADE      |
+| `type`              | `TEXT`        | NO       | --                   | CHECK: `'personal'`, `'team'`, `'financial'` |
+| `target_entity_id`  | `UUID`        | NO       | --                   | ID of the goal, habit, or task           |
+| `target_entity_type`| `TEXT`        | NO       | --                   | CHECK: `'goal'`, `'habit'`, `'task'`     |
+| `commitment_text`   | `TEXT`        | NO       | --                   | CHECK: length 1-500                      |
+| `stake_amount`      | `DECIMAL(10,2)` | YES    | `NULL`               | Financial stake in USD (nullable)        |
+| `stake_charity`     | `TEXT`        | YES      | `NULL`               | Charity name for financial stakes        |
+| `start_date`        | `DATE`        | NO       | --                   | --                                       |
+| `end_date`          | `DATE`        | NO       | --                   | CHECK: end_date > start_date             |
+| `status`            | `TEXT`        | NO       | `'active'`           | CHECK: `'active'`, `'completed'`, `'failed'`, `'cancelled'` |
+| `check_in_frequency`| `TEXT`        | NO       | `'weekly'`           | CHECK: `'daily'`, `'weekly'`, `'biweekly'`, `'monthly'` |
+| `created_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | --                                       |
+| `updated_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | Auto-updated by trigger                  |
+
+### habit_stacks
+
+AI-suggested or user-created sequences of habits that work well together.
+
+| Column              | Type          | Nullable | Default              | Constraints                              |
+| ------------------- | ------------- | -------- | -------------------- | ---------------------------------------- |
+| `id`                | `UUID`        | NO       | `uuid_generate_v4()` | PK                                       |
+| `user_id`           | `UUID`        | NO       | --                   | FK -> `users(id)` ON DELETE CASCADE      |
+| `name`              | `TEXT`        | NO       | --                   | CHECK: length 1-200                      |
+| `habit_ids`         | `UUID[]`      | NO       | --                   | Ordered array of habit IDs in the stack  |
+| `sequence_order`    | `INTEGER[]`   | NO       | --                   | Execution order (parallel to habit_ids)  |
+| `suggested_time`    | `TIME`        | YES      | `NULL`               | AI-suggested optimal start time          |
+| `effectiveness_score`| `REAL`       | YES      | `NULL`               | 0-1, based on completion correlation data |
+| `created_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | --                                       |
+| `updated_at`        | `TIMESTAMPTZ` | NO       | `NOW()`              | Auto-updated by trigger                  |
 
 ---
 

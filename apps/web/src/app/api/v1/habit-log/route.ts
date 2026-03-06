@@ -18,7 +18,7 @@ export const POST = withLogging(withCors(withRateLimit(async (request: Request) 
     // Validate date format if provided (for future use), but logToday uses today's date internally
     validateDate(body.date, 'date')
 
-    const log = await HabitService.logToday(habit_id, user.id, status)
+    const log = await HabitService.logToday(habit_id, user.id, status as 'completed' | 'skipped')
     return successResponse(log, 201)
   } catch (error) {
     return errorResponse(error)

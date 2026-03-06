@@ -7,12 +7,19 @@ interface ChatMessage {
 }
 
 interface CompletionOptions {
-  messages: ChatMessage[]
+  messages?: ChatMessage[]
+  prompt?: string
   maxTokens?: number
   temperature?: number
 }
 
 export async function complete(options: CompletionOptions): Promise<string> {
+  // Support both `messages` and shorthand `prompt` (converted to a single user message)
+  if (options.prompt && !options.messages) {
+    options.messages = [{ role: 'user', content: options.prompt }]
+  }
+  if (!options.messages?.length) throw new Error('Either messages or prompt is required')
+
   const provider = process.env.AI_PROVIDER ?? 'openai'
 
   if (provider === 'groq') {

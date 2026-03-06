@@ -13,6 +13,17 @@ import '../../features/habits/presentation/screens/habits_screen.dart';
 import '../../features/planner/presentation/screens/planner_screen.dart';
 import '../../features/ai/presentation/screens/ai_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/momentum/presentation/screens/momentum_screen.dart';
+import '../../features/burnout/presentation/screens/burnout_screen.dart';
+import '../../features/patterns/presentation/screens/patterns_screen.dart';
+import '../../features/life_review/presentation/screens/reviews_screen.dart';
+import '../../features/focus/presentation/screens/focus_screen.dart';
+import '../../features/voice_log/presentation/screens/voice_log_screen.dart';
+import '../../features/cascade/presentation/screens/cascade_screen.dart';
+import '../../features/habit_stacking/presentation/screens/habit_stacks_screen.dart';
+import '../../features/goal_autopilot/presentation/screens/goal_autopilot_screen.dart';
+import '../../features/accountability/presentation/screens/contracts_screen.dart';
+import '../../features/time_fingerprint/presentation/screens/time_fingerprint_screen.dart';
 
 class Routes {
   static const splash = '/';
@@ -28,6 +39,17 @@ class Routes {
   static const verifyEmail = '/verify-email';
   static const profile = '/profile';
   static const settings = '/settings';
+  static const momentum = '/momentum';
+  static const burnout = '/burnout';
+  static const patterns = '/patterns';
+  static const reviews = '/reviews';
+  static const focus = '/focus';
+  static const voiceLog = '/voice-log';
+  static const cascade = '/cascade';
+  static const habitStacks = '/habit-stacks';
+  static const goalAutopilot = '/goal-autopilot';
+  static const contracts = '/contracts';
+  static const timeFingerprint = '/time-fingerprint';
 }
 
 class AppRouter {
@@ -73,6 +95,17 @@ class AppRouter {
       GoRoute(path: Routes.planner, builder: (_, __) => const PlannerScreen()),
       GoRoute(path: Routes.ai, builder: (_, __) => const AiScreen()),
       GoRoute(path: Routes.settings, builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: Routes.momentum, builder: (_, __) => const MomentumScreen()),
+      GoRoute(path: Routes.burnout, builder: (_, __) => const BurnoutScreen()),
+      GoRoute(path: Routes.patterns, builder: (_, __) => const PatternsScreen()),
+      GoRoute(path: Routes.reviews, builder: (_, __) => const ReviewsScreen()),
+      GoRoute(path: Routes.focus, builder: (_, __) => const FocusScreen()),
+      GoRoute(path: Routes.voiceLog, builder: (_, __) => const VoiceLogScreen()),
+      GoRoute(path: Routes.cascade, builder: (_, __) => const CascadeScreen()),
+      GoRoute(path: Routes.habitStacks, builder: (_, __) => const HabitStacksScreen()),
+      GoRoute(path: Routes.goalAutopilot, builder: (_, __) => const GoalAutopilotScreen()),
+      GoRoute(path: Routes.contracts, builder: (_, __) => const ContractsScreen()),
+      GoRoute(path: Routes.timeFingerprint, builder: (_, __) => const TimeFingerprintScreen()),
     ],
   );
 }

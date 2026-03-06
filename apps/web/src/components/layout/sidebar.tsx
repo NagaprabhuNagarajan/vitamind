@@ -12,6 +12,10 @@ import {
   CalendarDays,
   MessageSquare,
   Settings,
+  Sparkles,
+  BookOpen,
+  Crosshair,
+  Shield,
 } from 'lucide-react'
 import { LogoutDialog } from './logout-dialog'
 
@@ -22,6 +26,10 @@ const NAV_ITEMS = [
   { href: '/habits',    label: 'Habits',    icon: Repeat2 },
   { href: '/planner',   label: 'Planner',   icon: CalendarDays },
   { href: '/ai',        label: 'AI Chat',   icon: MessageSquare },
+  { href: '/patterns',  label: 'Patterns',  icon: Sparkles },
+  { href: '/reviews',   label: 'Reviews',   icon: BookOpen },
+  { href: '/focus',      label: 'Focus',     icon: Crosshair },
+  { href: '/contracts',  label: 'Contracts', icon: Shield },
   { href: '/settings',  label: 'Settings',  icon: Settings },
 ]
 

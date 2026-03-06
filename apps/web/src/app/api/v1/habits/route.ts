@@ -9,6 +9,7 @@ import {
   HABIT_FREQUENCIES,
 } from '@/lib/api/validation'
 import { HabitService } from '@/features/habits/services/habit.service'
+import type { CreateHabitInput } from '@/features/habits/types'
 
 export { OPTIONS }
 
@@ -43,7 +44,7 @@ export const POST = withLogging(withCors(withRateLimit(async (request: Request) 
       reminder_time: validateTime(body.reminder_time, 'reminder_time'),
     }
 
-    const habit = await HabitService.create(user.id, validated)
+    const habit = await HabitService.create(user.id, validated as CreateHabitInput)
     return successResponse(habit, 201)
   } catch (error) {
     return errorResponse(error)

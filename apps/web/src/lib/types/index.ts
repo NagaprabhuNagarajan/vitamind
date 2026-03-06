@@ -41,6 +41,8 @@ export interface Task {
   recurrence_end_date?: string | null
   parent_task_id?: string | null
   next_occurrence?: string | null
+  estimated_minutes?: number | null
+  is_subtask?: boolean
   created_at: string
   updated_at: string
 }

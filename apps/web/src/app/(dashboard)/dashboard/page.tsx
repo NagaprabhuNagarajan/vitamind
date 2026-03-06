@@ -6,6 +6,10 @@ import { TodayTasks } from './today-tasks'
 import { HabitCheckins } from './habit-checkins'
 import { GoalProgress } from './goal-progress'
 import { AIInsightCard } from './ai-insight-card'
+import { MomentumScore } from './momentum-score'
+import { BurnoutRadar } from './burnout-radar'
+import { CascadeAlerts } from './cascade-alerts'
+import { VoiceLogWidget } from './voice-log-widget'
 import { TaskService } from '@/features/tasks/services/task.service'
 import { GoalService } from '@/features/goals/services/goal.service'
 import { HabitService } from '@/features/habits/services/habit.service'
@@ -52,6 +56,18 @@ export default async function DashboardPage() {
         habitsTotal={habitsWithStreaks.length}
         goalsActive={goals.filter((g) => !g.is_completed).length}
       />
+
+      {/* Life Momentum Score */}
+      <MomentumScore />
+
+      {/* Burnout Radar (only shows when risk >= 30) */}
+      <BurnoutRadar />
+
+      {/* Cascade Alerts (only shows when cascades detected) */}
+      <CascadeAlerts />
+
+      {/* Voice Log */}
+      <VoiceLogWidget />
 
       {/* AI Insight */}
       <AIInsightCard userId={user.id} />

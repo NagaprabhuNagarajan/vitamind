@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { HabitService } from '@/features/habits/services/habit.service'
 import { HabitGrid } from './habit-grid'
 import { HabitCreateButton } from './habit-create-button'
+import { HabitStacks } from './habit-stacks'
 
 export const metadata = { title: 'Habits' }
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,7 @@ export default async function HabitsPage() {
         description={`${done}/${habits.length} done today`}
         action={<HabitCreateButton />}
       />
+      <HabitStacks />
       <HabitGrid initialHabits={habits} />
     </div>
   )

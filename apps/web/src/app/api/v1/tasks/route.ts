@@ -9,7 +9,7 @@ import {
   TASK_STATUSES, TASK_PRIORITIES,
 } from '@/lib/api/validation'
 import { TaskService } from '@/features/tasks/services/task.service'
-import type { TaskFilters } from '@/features/tasks/types'
+import type { TaskFilters, CreateTaskInput } from '@/features/tasks/types'
 
 export { OPTIONS }
 
@@ -46,7 +46,7 @@ export const POST = withLogging(withCors(withRateLimit(async (request: Request) 
       goal_id: validateUUID(body.goal_id, 'goal_id'),
     }
 
-    const task = await TaskService.create(user.id, validated)
+    const task = await TaskService.create(user.id, validated as CreateTaskInput)
     return successResponse(task, 201)
   } catch (error) {
     return errorResponse(error)

@@ -10,7 +10,7 @@ interface Params { params: Promise<{ id: string }> }
 
 export { OPTIONS }
 
-export const GET = withLogging(withCors(withRateLimit(async (_req: Request, context?: { params: Promise<Record<string, string>> }) => {
+export const GET = withLogging(withCors(withRateLimit(async (_req: Request, context: { params: Promise<Record<string, string>> }) => {
   try {
     const user = await requireAuth()
     const { id } = await (context as Params).params
@@ -21,7 +21,7 @@ export const GET = withLogging(withCors(withRateLimit(async (_req: Request, cont
   }
 }, { routeKey: 'goals', tier: RateLimitTier.standard })))
 
-export const PUT = withLogging(withCors(withRateLimit(async (request: Request, context?: { params: Promise<Record<string, string>> }) => {
+export const PUT = withLogging(withCors(withRateLimit(async (request: Request, context: { params: Promise<Record<string, string>> }) => {
   try {
     const user = await requireAuth()
     const { id } = await (context as Params).params
@@ -41,7 +41,7 @@ export const PUT = withLogging(withCors(withRateLimit(async (request: Request, c
   }
 }, { routeKey: 'goals', tier: RateLimitTier.standard })))
 
-export const DELETE = withLogging(withCors(withRateLimit(async (_req: Request, context?: { params: Promise<Record<string, string>> }) => {
+export const DELETE = withLogging(withCors(withRateLimit(async (_req: Request, context: { params: Promise<Record<string, string>> }) => {
   try {
     const user = await requireAuth()
     const { id } = await (context as Params).params

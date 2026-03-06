@@ -10,6 +10,8 @@ import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../../core/widgets/offline_banner.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart' as auth_bloc;
 import '../../data/dashboard_service.dart';
+import '../../../momentum/data/momentum_service.dart';
+import '../../../burnout/data/burnout_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,7 +22,11 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final _service = DashboardService();
+  final _momentumService = MomentumService();
+  final _burnoutService = BurnoutService();
   DashboardData? _data;
+  MomentumSnapshot? _momentum;
+  BurnoutAlert? _burnout;
   bool _loading = true;
   bool _isFromCache = false;
   String? _error;
@@ -38,9 +44,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
     try {
       final user = Supabase.instance.client.auth.currentUser!;
-      final data = await _service.fetch(user.id);
+      final results = await Future.wait([
+        _service.fetch(user.id),
+        _momentumService.fetchCurrent(user.id).catchError((_) => null),
+        _burnoutService.fetchLatest(user.id).catchError((_) => null),
+      ]);
+      final data = results[0] as DashboardData;
       setState(() {
         _data = data;
+        _momentum = results[1] as MomentumSnapshot?;
+        _burnout = results[2] as BurnoutAlert?;
         _isFromCache = data.isFromCache;
       });
     } catch (e) {
@@ -296,6 +309,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
 
+        // Momentum score
+        if (_momentum != null) ...[
+          const SizedBox(height: 16),
+          _MomentumWidget(score: _momentum!.score),
+        ],
+
+        // Burnout alert
+        if (_burnout != null && _burnout!.riskLevel >= 30 && !_burnout!.acknowledged) ...[
+          const SizedBox(height: 12),
+          _BurnoutWidget(alert: _burnout!),
+        ],
+
         const SizedBox(height: 24),
 
         // Quick access
@@ -508,6 +533,116 @@ class _QuickCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MomentumWidget extends StatelessWidget {
+  final int score;
+  const _MomentumWidget({required this.score});
+
+  Color get _color {
+    if (score >= 70) return AppColors.success;
+    if (score >= 40) return AppColors.warning;
+    return AppColors.error;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      borderColor: _color.withValues(alpha: 0.25),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: _color.withValues(alpha: 0.4), width: 3),
+              color: _color.withValues(alpha: 0.08),
+            ),
+            child: Center(
+              child: Text(
+                '$score',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: _color,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Life Momentum',
+                    style: Theme.of(context).textTheme.labelLarge),
+                const SizedBox(height: 2),
+                Text(
+                  score >= 70
+                      ? 'Great momentum - keep it up!'
+                      : score >= 40
+                          ? 'Moderate momentum - room to grow'
+                          : 'Low momentum - focus on key habits',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textTertiary),
+        ],
+      ),
+      onTap: () => context.go(Routes.momentum),
+    );
+  }
+}
+
+class _BurnoutWidget extends StatelessWidget {
+  final BurnoutAlert alert;
+  const _BurnoutWidget({required this.alert});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = alert.riskLevel >= 70 ? AppColors.error : AppColors.warning;
+    return GlassCard(
+      borderColor: color.withValues(alpha: 0.25),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.warning_amber_rounded, size: 22, color: color),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Burnout Risk: ${alert.riskLevel}%',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Tap to see recovery suggestions',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textTertiary),
+        ],
+      ),
+      onTap: () => context.go(Routes.burnout),
     );
   }
 }

@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { GoalService } from '@/features/goals/services/goal.service'
 import { GoalList } from './goal-list'
 import { GoalCreateButton } from './goal-create-button'
+import { GoalAutopilot } from './goal-autopilot'
 
 export const metadata = { title: 'Goals' }
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,7 @@ export default async function GoalsPage() {
         description={`${active} active · ${goals.length - active} completed`}
         action={<GoalCreateButton />}
       />
+      <GoalAutopilot />
       <GoalList initialGoals={goals} />
     </div>
   )
