@@ -110,7 +110,7 @@ The following phases build the 12 killer features that form VitaMind's competiti
 - Focus Contracts: Declare a focus block with specific tasks and a time window. Track interruptions and completed tasks. Get a focus score after the block ends. Stored in `focus_blocks` table.
 - Accountability Contracts: Stake-based goal commitments. User sets a goal, a deadline, a check-in frequency, and optionally a financial stake (donated to charity on failure). Stored in `contracts` table.
 
-**Why last:** Focus Contracts require the task infrastructure to be mature. Accountability Contracts introduce financial transactions (Stripe integration) and are the highest-complexity feature. They also unlock the Team tier.
+**Why last:** Focus Contracts require the task infrastructure to be mature. Accountability Contracts introduce financial transactions (Razorpay integration) and are the highest-complexity feature. They also unlock the Team tier.
 
 **Deliverables:**
 - `focus_blocks` table
@@ -119,7 +119,7 @@ The following phases build the 12 killer features that form VitaMind's competiti
 - `contracts` table
 - POST /api/v1/contracts, GET /api/v1/contracts endpoints
 - Contract creation flow UI
-- Stripe integration for financial stakes
+- Razorpay integration for financial stakes (UPI, net banking, cards)
 - Team tier: shared accountability contracts between users
 
 **Revenue gate:** Focus Contracts and Accountability Contracts are Pro/Team only. Team tier launches with Phase F.
@@ -132,9 +132,19 @@ These phases extend VitaMind toward the AI Life Intelligence Platform vision.
 
 ### Phase G -- Calendar & External Integrations
 
-- Google Calendar / Apple Calendar sync
-- Calendar-aware daily planning (AI sees your meetings)
-- Weekly productivity email reports via Resend
+- Google Calendar sync -- **Complete** (OAuth connect, event CRUD, bi-directional sync)
+- Calendar-aware daily planning (AI sees your meetings) -- Planned
+- Weekly productivity email reports via Resend -- **Complete** (edge function deployed)
+- Apple Calendar sync -- Planned
+
+### Phase G -- Launch Infrastructure -- **Complete**
+
+- Vercel deployment (vitamind-woad.vercel.app)
+- Firebase Cloud Messaging V1 (OAuth2 JWT, not Legacy)
+- Sentry error monitoring (web + mobile)
+- PostHog analytics (web + mobile)
+- Supabase Edge Functions (compute-momentum, send-reminder, send-weekly-report)
+- pg_cron scheduling (momentum daily, reminders hourly, habits daily, weekly reports Monday 9am)
 
 ### Phase H -- Behavioral Intelligence
 
@@ -148,3 +158,9 @@ These phases extend VitaMind toward the AI Life Intelligence Platform vision.
 - Health data connections (Apple Health, Google Fit)
 - Automation workflows (IFTTT/Zapier-style triggers)
 - Cross-domain life optimization recommendations
+
+### Phase J -- Monetization
+
+- Razorpay integration for accountability contract financial stakes (India-first: UPI, net banking, cards, wallets)
+- Pro tier feature gating
+- Team tier: shared accountability contracts

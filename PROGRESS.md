@@ -1,6 +1,6 @@
 # VitaMind -- Build Progress
 
-> Last updated: 2026-03-05
+> Last updated: 2026-03-06
 
 ## Summary
 
@@ -844,3 +844,55 @@
 | 10 | Life Review | Done | Done |
 | 11 | Focus Contracts | Done | Done |
 | 12 | Accountability Contracts | Done | Done |
+
+---
+
+## Phase 39 -- Launch Prep & Deployment
+
+| Task | Status |
+|------|--------|
+| 39A -- FCM V1 migration (Legacy API -> OAuth2 service account JWT) | Done |
+| 39B -- Firebase project setup (vitamind-d72ad) + Android Gradle config | Done |
+| 39C -- Sentry error monitoring setup (web + mobile scaffolding) | Done |
+| 39D -- PostHog analytics setup (web + mobile scaffolding) | Done |
+| 39E -- Vercel deployment (vercel.json fix, Next.js update, env vars) | Done |
+| 39F -- Supabase secrets (FCM_SERVICE_ACCOUNT) | Done |
+| 39G -- Google Calendar OAuth credentials setup | Done |
+| 39H -- Supabase Edge Functions deployment | Done |
+
+**FCM V1 Migration:**
+- `backend/supabase/functions/_shared/send-notification.ts` -- rewritten: FCM V1 with JWT-based OAuth2
+- `backend/supabase/functions/send-reminder/index.ts` -- removed FCM_SERVER_KEY, 3-param signature
+- `backend/supabase/functions/compute-momentum/index.ts` -- FCM_SERVICE_ACCOUNT check
+
+**Sentry (web):**
+- `apps/web/sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
+- `apps/web/next.config.ts` -- wrapped with withSentryConfig()
+
+**PostHog (web):**
+- `apps/web/src/lib/posthog.ts` -- trackEvent, identifyUser, AnalyticsEvents
+- `apps/web/src/components/providers/analytics-provider.tsx`
+
+**Mobile monitoring/analytics scaffolding:**
+- `apps/mobile/lib/core/monitoring/sentry_service.dart`
+- `apps/mobile/lib/core/analytics/analytics_service.dart`
+
+**Deployment:**
+- `apps/web/vercel.json` -- removed @secret references
+- `.gitignore` -- added Firebase keys, google-services.json
+- `apps/web/src/lib/env.ts` -- added Sentry + PostHog optional vars
+
+---
+
+## Phase 40 -- External Service Integration Status
+
+| Service | Status | Notes |
+|---------|--------|-------|
+| Supabase (DB + Auth) | Active | Project: qogkvngpcmrdbrkgxbow |
+| Vercel (Web hosting) | Active | vitamind-woad.vercel.app |
+| Firebase (FCM) | Active | Project: vitamind-d72ad |
+| Sentry (Error monitoring) | Active | DSN configured in Vercel |
+| PostHog (Analytics) | Active | API key configured in Vercel |
+| Google Calendar OAuth | Configured | Credentials set in Vercel |
+| Resend / SendGrid (Email) | Pending | Need API key for weekly reports |
+| Razorpay (Payments) | Deferred | For accountability contract stakes (UPI, net banking, cards) |
