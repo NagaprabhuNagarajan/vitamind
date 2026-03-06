@@ -33,6 +33,13 @@ void main() {
     }),
   ];
 
+  PaginatedTasks paginated(List<Task> tasks) => PaginatedTasks(
+        tasks: tasks,
+        total: tasks.length,
+        page: 1,
+        limit: 20,
+      );
+
   setUp(() {
     mockService = MockTaskService();
   });
@@ -49,8 +56,8 @@ void main() {
     blocTest<TasksBloc, TasksState>(
       'emits [Loading, Success] on successful load',
       build: () {
-        when(() => mockService.getAll(userId))
-            .thenAnswer((_) async => sampleTasks);
+        when(() => mockService.getAll(userId, statusFilter: any(named: 'statusFilter'), page: any(named: 'page'), limit: any(named: 'limit')))
+            .thenAnswer((_) async => paginated(sampleTasks));
         return TasksBloc(mockService, userId);
       },
       act: (bloc) => bloc.add(TasksLoadRequested()),
@@ -64,7 +71,7 @@ void main() {
     blocTest<TasksBloc, TasksState>(
       'emits [Loading, Error] when load fails',
       build: () {
-        when(() => mockService.getAll(userId))
+        when(() => mockService.getAll(userId, statusFilter: any(named: 'statusFilter'), page: any(named: 'page'), limit: any(named: 'limit')))
             .thenThrow(Exception('Network error'));
         return TasksBloc(mockService, userId);
       },
@@ -87,15 +94,14 @@ void main() {
               priority: TaskPriority.medium,
               dueDate: null,
             )).thenAnswer((_) async {});
-        when(() => mockService.getAll(userId))
-            .thenAnswer((_) async => sampleTasks);
+        when(() => mockService.getAll(userId, statusFilter: any(named: 'statusFilter'), page: any(named: 'page'), limit: any(named: 'limit')))
+            .thenAnswer((_) async => paginated(sampleTasks));
         return TasksBloc(mockService, userId);
       },
       act: (bloc) => bloc.add(TaskCreateRequested(
         title: 'New task',
         priority: TaskPriority.medium,
       )),
-      // The create handler calls add(TasksLoadRequested()) which emits Loading + Success
       verify: (_) {
         verify(() => mockService.create(
               userId: userId,
@@ -117,8 +123,8 @@ void main() {
               priority: TaskPriority.medium,
               dueDate: null,
             )).thenThrow(Exception('insert failed'));
-        when(() => mockService.getAll(userId))
-            .thenAnswer((_) async => []);
+        when(() => mockService.getAll(userId, statusFilter: any(named: 'statusFilter'), page: any(named: 'page'), limit: any(named: 'limit')))
+            .thenAnswer((_) async => paginated([]));
         return TasksBloc(mockService, userId);
       },
       act: (bloc) => bloc.add(TaskCreateRequested(
@@ -162,8 +168,8 @@ void main() {
       build: () {
         when(() => mockService.updateStatus('t1', TaskStatus.completed))
             .thenThrow(Exception('update failed'));
-        when(() => mockService.getAll(userId))
-            .thenAnswer((_) async => sampleTasks);
+        when(() => mockService.getAll(userId, statusFilter: any(named: 'statusFilter'), page: any(named: 'page'), limit: any(named: 'limit')))
+            .thenAnswer((_) async => paginated(sampleTasks));
         return TasksBloc(mockService, userId);
       },
       act: (bloc) => bloc.add(TaskStatusUpdateRequested(
@@ -199,8 +205,8 @@ void main() {
       seed: () => TasksSuccess(sampleTasks),
       build: () {
         when(() => mockService.delete('t1')).thenThrow(Exception('fail'));
-        when(() => mockService.getAll(userId))
-            .thenAnswer((_) async => sampleTasks);
+        when(() => mockService.getAll(userId, statusFilter: any(named: 'statusFilter'), page: any(named: 'page'), limit: any(named: 'limit')))
+            .thenAnswer((_) async => paginated(sampleTasks));
         return TasksBloc(mockService, userId);
       },
       act: (bloc) => bloc.add(TaskDeleteRequested('t1')),
@@ -215,8 +221,8 @@ void main() {
     blocTest<TasksBloc, TasksState>(
       'filter change triggers a reload',
       build: () {
-        when(() => mockService.getAll(userId))
-            .thenAnswer((_) async => sampleTasks);
+        when(() => mockService.getAll(userId, statusFilter: any(named: 'statusFilter'), page: any(named: 'page'), limit: any(named: 'limit')))
+            .thenAnswer((_) async => paginated(sampleTasks));
         return TasksBloc(mockService, userId);
       },
       act: (bloc) => bloc.add(TaskFilterChanged('completed')),

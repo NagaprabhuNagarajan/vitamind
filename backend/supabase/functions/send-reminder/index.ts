@@ -15,8 +15,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const FCM_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/{PROJECT_ID}/messages:send'
+import { sendPushNotification } from '../_shared/send-notification.ts'
 
 serve(async (req) => {
   try {
@@ -37,7 +36,6 @@ serve(async (req) => {
     let recipients: Array<{ userId: string; title: string; body: string }> = []
 
     if (type === 'tasks') {
-      // Tasks due within the next hour, not yet completed
       const { data: tasks } = await supabase
         .from('tasks')
         .select('id, title, user_id, due_date')
@@ -53,7 +51,6 @@ serve(async (req) => {
         }))
       }
     } else if (type === 'habits') {
-      // Habits not logged today
       const { data: habits } = await supabase
         .from('habits')
         .select('id, title, user_id')
@@ -75,38 +72,18 @@ serve(async (req) => {
       }))
     }
 
-    // Fetch FCM tokens for the relevant users
-    const userIds = [...new Set(recipients.map((r) => r.userId))]
-    if (userIds.length === 0) {
+    if (recipients.length === 0) {
       return new Response(JSON.stringify({ sent: 0 }), { status: 200 })
     }
 
-    const { data: users } = await supabase
-      .from('users')
-      .select('id, fcm_token')
-      .in('id', userIds)
-      .not('fcm_token', 'is', null)
-
-    const tokenMap = new Map((users ?? []).map((u: any) => [u.id, u.fcm_token]))
-
     let sent = 0
     for (const r of recipients) {
-      const token = tokenMap.get(r.userId)
-      if (!token) continue
-
-      await fetch(`https://fcm.googleapis.com/fcm/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `key=${fcmKey}`,
-        },
-        body: JSON.stringify({
-          to: token,
-          notification: { title: r.title, body: r.body },
-          data: { type, userId: r.userId },
-        }),
-      })
-      sent++
+      const ok = await sendPushNotification(supabase, r.userId, {
+        title: r.title,
+        body: r.body,
+        data: { type },
+      }, fcmKey)
+      if (ok) sent++
     }
 
     return new Response(JSON.stringify({ sent }), {

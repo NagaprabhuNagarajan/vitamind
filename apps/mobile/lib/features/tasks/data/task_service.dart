@@ -223,14 +223,13 @@ class TaskService {
     var query = _supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', userId)
-        .order('created_at', ascending: false);
+        .eq('user_id', userId);
 
     if (statusFilter != null) {
       query = query.eq('status', statusFilter);
     }
 
-    final data = await query.range(from, to);
+    final data = await query.order('created_at', ascending: false).range(from, to);
     final tasks = (data as List)
         .map((m) => Task.fromMap(m as Map<String, dynamic>))
         .toList();

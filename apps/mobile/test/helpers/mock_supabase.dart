@@ -9,12 +9,10 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 /// Because Supabase uses a chained builder pattern, we mock it as
 /// a single object that returns itself for each chained call.
 class MockQueryBuilder extends Mock {
-  // Allow any call to return this object (for chaining)
+  // Allow any call to return this object (for chaining).
+  // Unmocked methods return `this` so chained calls keep working.
   @override
-  dynamic noSuchMethod(Invocation invocation) {
-    // Default: return self for chaining; tests override specific calls
-    return super.noSuchMethod(invocation, returnValue: this);
-  }
+  dynamic noSuchMethod(Invocation invocation) => this;
 }
 
 /// Convenience to build a mock chain for `supabase.from('table').select()...`

@@ -153,7 +153,7 @@ describe('buildDailyPlanPrompt', () => {
     expect(prompt).toContain('## Morning Focus')
     expect(prompt).toContain('## Key Priorities')
     expect(prompt).toContain('## Habit Reminder')
-    expect(prompt).toContain('## One Insight')
+    expect(prompt).toContain('## Momentum Insight')
   })
 })
 

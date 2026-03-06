@@ -106,7 +106,7 @@ Map<String, dynamic> _minGoalMap({num? progress}) {
     'id': 'goal-1',
     'title': 'Test goal',
     'description': null,
-    'progress': progress ?? 25,
+    'progress': progress,
     'is_completed': false,
     'target_date': null,
     'created_at': '2026-01-01T00:00:00Z',
