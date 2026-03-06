@@ -102,7 +102,7 @@ serve(async (_req) => {
     weekAgo.setDate(weekAgo.getDate() - 7)
     const weekAgoStr = weekAgo.toISOString().split('T')[0]
 
-    const fcmKey = Deno.env.get('FCM_SERVER_KEY')
+    const hasFcm = !!Deno.env.get('FCM_SERVICE_ACCOUNT')
     let computed = 0
     let errors = 0
     let notificationsSent = 0
@@ -131,7 +131,7 @@ serve(async (_req) => {
         computed++
 
         // ── Push Notifications ─────────────────────────────────────
-        if (!fcmKey) continue
+        if (!hasFcm) continue
 
         // 1. Momentum drop alert (> 7 pts vs yesterday)
         const yesterday = new Date(now)
@@ -150,7 +150,7 @@ serve(async (_req) => {
             title: 'Momentum Alert',
             body: `Your momentum dropped ${delta} pts. One win can turn it around.`,
             data: { type: 'momentum_drop', delta: String(delta) },
-          }, fcmKey)
+          })
           if (ok) notificationsSent++
         }
 
@@ -160,7 +160,7 @@ serve(async (_req) => {
             title: 'Burnout Warning',
             body: `Risk elevated at ${c.burnoutRisk}/100. Consider a lighter day.`,
             data: { type: 'burnout_risk', risk: String(c.burnoutRisk) },
-          }, fcmKey)
+          })
           if (ok) notificationsSent++
         }
 
@@ -181,7 +181,7 @@ serve(async (_req) => {
             title: 'Cascade Alert',
             body: `Missing '${habitTitle}' is affecting '${goalTitle}'.`,
             data: { type: 'cascade_alert', eventId: evt.id },
-          }, fcmKey)
+          })
           if (ok) notificationsSent++
         }
       } catch (err) {

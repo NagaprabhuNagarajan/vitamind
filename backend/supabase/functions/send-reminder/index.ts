@@ -26,9 +26,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
-    const fcmKey = Deno.env.get('FCM_SERVER_KEY')
-    if (!fcmKey) return new Response('FCM_SERVER_KEY not set', { status: 500 })
-
     const now = new Date()
     const todayStr = now.toISOString().split('T')[0]
     const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000).toISOString()
@@ -82,7 +79,7 @@ serve(async (req) => {
         title: r.title,
         body: r.body,
         data: { type },
-      }, fcmKey)
+      })
       if (ok) sent++
     }
 

@@ -23,21 +23,23 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // TODO: Replace with actual values from `flutterfire configure`
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyDPGYx1kU4SAggKm8YuU_87pVaOjBBx4nY',
+    appId: '1:498326761770:android:29dddd0998846905792e53',
+    messagingSenderId: '498326761770',
+    projectId: 'vitamind-d72ad',
+    storageBucket: 'vitamind-d72ad.firebasestorage.app',
   );
 
+  // TODO: Replace with actual values from `flutterfire configure`
+
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
+    apiKey: 'AIzaSyCl5pQf_v4afrdEfcpsCwpsxUhw0n7IZHI',
+    appId: '1:498326761770:ios:8dc653c1e4eb56d7792e53',
+    messagingSenderId: '498326761770',
+    projectId: 'vitamind-d72ad',
+    storageBucket: 'vitamind-d72ad.firebasestorage.app',
     iosBundleId: 'com.example.vitamind',
   );
+
 }

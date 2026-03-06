@@ -46,6 +46,10 @@ dependencies:
   # Environment
   flutter_dotenv: ^5.2.1
 
+  sentry_flutter: ^8.3.0
+
+  posthog_flutter: ^4.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
