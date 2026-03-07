@@ -18,6 +18,7 @@ import {
   Shield,
   Clock,
   Hexagon,
+  TrendingUp,
 } from 'lucide-react'
 import { LogoutDialog } from './logout-dialog'
 
@@ -32,9 +33,10 @@ const NAV_ITEMS = [
   { href: '/reviews',   label: 'Reviews',   icon: BookOpen },
   { href: '/focus',      label: 'Focus',     icon: Crosshair },
   { href: '/contracts',  label: 'Contracts', icon: Shield },
-  { href: '/timeline',  label: 'Timeline',  icon: Clock },
-  { href: '/life-map',  label: 'Life Map',  icon: Hexagon },
-  { href: '/settings',  label: 'Settings',  icon: Settings },
+  { href: '/timeline',           label: 'Timeline',  icon: Clock },
+  { href: '/life-map',           label: 'Life Map',  icon: Hexagon },
+  { href: '/behavioral-trends',  label: 'Trends',    icon: TrendingUp },
+  { href: '/settings',           label: 'Settings',  icon: Settings },
 ]
 
 export function Sidebar() {

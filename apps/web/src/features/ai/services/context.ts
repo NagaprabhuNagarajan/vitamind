@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { HabitService } from '@/features/habits/services/habit.service'
 import { MomentumService } from '@/features/momentum/services/momentum.service'
 import { TimeFingerprintService } from '@/features/time-fingerprint/services/time-fingerprint.service'
+import { PatternOracleService } from '@/features/pattern-oracle/services/oracle.service'
 import {
   listCalendarEvents,
   getValidAccessToken,
@@ -10,6 +11,7 @@ import {
 import type { Task, Goal } from '@/lib/types'
 import type { MomentumSnapshot } from '@/features/momentum/types'
 import type { ProductivityProfile } from '@/features/time-fingerprint/services/time-fingerprint.service'
+import type { PatternInsight } from '@/features/pattern-oracle/types'
 
 // Fetch today's calendar events if the user has a connected calendar
 async function fetchCalendarEvents(userId: string): Promise<CalendarEvent[]> {
@@ -59,6 +61,7 @@ export async function buildUserContext(userId: string) {
     momentum,
     fingerprint,
     calendarEvents,
+    patternsResult,
   ] = await Promise.all([
     supabase.from('users').select('name').eq('id', userId).single(),
     supabase.from('tasks').select('*').eq('user_id', userId).neq('status', 'cancelled'),
@@ -67,6 +70,7 @@ export async function buildUserContext(userId: string) {
     MomentumService.getCurrentScore(userId).catch(() => null),
     TimeFingerprintService.getProfile(userId).catch(() => ({ profile: null, has_enough_data: false })),
     fetchCalendarEvents(userId),
+    PatternOracleService.getInsights(userId).catch(() => ({ insights: [], keystone_habit: null, has_enough_data: false })),
   ])
 
   return {
@@ -82,5 +86,7 @@ export async function buildUserContext(userId: string) {
     momentum: momentum as MomentumSnapshot | null,
     timeFingerprint: fingerprint.profile as ProductivityProfile | null,
     calendarEvents,
+    patterns: patternsResult.insights as PatternInsight[],
+    keystoneHabit: patternsResult.keystone_habit,
   }
 }

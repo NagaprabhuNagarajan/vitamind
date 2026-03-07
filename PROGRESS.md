@@ -1,12 +1,12 @@
 # VitaMind -- Build Progress
 
-> Last updated: 2026-03-06
+> Last updated: 2026-03-07
 
 ## Summary
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 172   | 172       | 0           | 0       |
+| 193   | 193       | 0           | 0       |
 
 ---
 
@@ -1057,6 +1057,41 @@
 
 ---
 
+## Phase 55 -- Phase H: Behavioral Trend Analysis
+
+- [x] Created `apps/web/src/features/behavioral-trends/services/trends.service.ts` -- `BehavioralTrendsService.getAnalysis()` fetches 90 days of `momentum_snapshots`, groups into ISO weeks, computes weekly averages (score, task_velocity, habit_consistency, goal_trajectory, overdue_pressure, burnout_risk), finds trend direction (improving/declining/stable) per component by comparing first-half vs second-half weekly averages, returns best/worst weeks
+- [x] Created `apps/web/src/app/api/v1/behavioral-trends/route.ts` -- `GET /api/v1/behavioral-trends` endpoint (dashboard rate tier, requireAuth)
+- [x] Created `apps/web/src/app/(dashboard)/behavioral-trends/page.tsx` -- server page with redirect guard and PageHeader
+- [x] Created `apps/web/src/app/(dashboard)/behavioral-trends/trends-view.tsx` -- client component with: overall trend banner (color-coded improving/stable/declining), interactive weekly bar chart with hover tooltips, component trends breakdown (Task Velocity, Habit Consistency, Goal Trajectory, Burnout Risk) with mini sparklines, best/worst week highlight cards, weekly detail table (reversed, newest first)
+- [x] Created `apps/web/src/app/(dashboard)/behavioral-trends/loading.tsx` -- skeleton loading state
+- [x] Updated `apps/web/src/components/layout/sidebar.tsx` -- added `TrendingUp` import and "Trends" nav item → `/behavioral-trends`
+- [x] Created `apps/mobile/lib/features/behavioral_trends/data/behavioral_trends_service.dart` -- `BehavioralTrendsService.fetchTrends()` calls `GET /api/v1/behavioral-trends` with Bearer auth, cached 4 hours; `WeekSummary`, `ComponentTrend`, `BehavioralTrendsResult`, `TrendDirection` models
+- [x] Created `apps/mobile/lib/features/behavioral_trends/presentation/screens/behavioral_trends_screen.dart` -- full Flutter screen: overall trend banner, weekly bar chart (color-coded), component trend rows, best/worst week highlight cards, weekly breakdown table
+
+**Files created/modified:** 8 files
+
+---
+
+## Phase 56 -- Phase H: Smart Scheduling
+
+- [x] Created `apps/web/src/app/api/v1/smart-schedule/route.ts` -- `POST /api/v1/smart-schedule` endpoint: accepts `{title, priority, date?, estimated_minutes?}`, fetches Time Fingerprint + Google Calendar events for the date, calls AI to generate 3 optimal time slot suggestions (avoids calendar conflicts, uses peak hours for high-priority tasks), returns `{slots: [{time, label, reason}], used_fingerprint, used_calendar}` with graceful fallback
+- [x] Updated `apps/web/src/app/(dashboard)/tasks/task-create-button.tsx` -- added `TimeSlot` interface, `suggestTime()` async method, controlled `dueTime`/`dueDate` state, "Suggest time" button with `Sparkles` icon next to time label, inline slot suggestion chips (click to apply), `Spinner` while loading
+- [x] Created `apps/mobile/lib/features/smart_schedule/data/smart_schedule_service.dart` -- `SmartScheduleService.suggestSlots()` calls `POST /api/v1/smart-schedule` with Bearer auth; `TimeSlot`, `SmartScheduleResult` models
+- [x] Updated `apps/mobile/lib/features/tasks/presentation/screens/tasks_screen.dart` -- added `SmartScheduleService` import, `_suggestingTime`/`_timeSlots` state, `_suggestTime()` method, "Suggest time" `TextButton` below date/time row, time slot chips (Wrap layout) that auto-apply the selected time and clear suggestions
+
+**Files created/modified:** 4 files
+
+---
+
+## Phase 57 -- Phase H: AI Productivity Coaching (Pattern Oracle enrichment)
+
+- [x] Updated `apps/web/src/features/ai/services/context.ts` -- added `PatternOracleService` + `PatternInsight` imports; `buildUserContext()` now also fetches pattern insights via `PatternOracleService.getInsights()` in the parallel Promise.all; returned context includes `patterns: PatternInsight[]` and `keystoneHabit`
+- [x] Updated `apps/web/src/features/ai/services/prompt-builder.ts` -- added `PatternInsight` import; `UserContext` interface extended with `patterns?` and `keystoneHabit?`; `buildChatSystemPrompt()` now builds a `patternsBlock` (top 4 pattern titles + descriptions, keystone habit callout) appended to the system prompt; coaching guidelines extended with "reference specific patterns" and "encourage keystone habit consistency"
+
+**Files created/modified:** 2 files
+
+---
+
 ## Backlog -- Pending Items
 
 ### Requires Manual Action
@@ -1081,9 +1116,9 @@
 
 | # | Phase | Feature | Status |
 |---|-------|---------|--------|
-| 1 | Phase H | Calendar-aware AI daily planning (AI sees meetings) | Not started |
-| 2 | Phase H | Smart scheduling (optimal times from Time Fingerprint + calendar) | Not started |
-| 3 | Phase H | AI productivity coaching conversations | Not started |
+| ~~1~~ | ~~Phase H~~ | ~~Calendar-aware AI daily planning (AI sees meetings)~~ | ~~Done (Phase 55)~~ |
+| ~~2~~ | ~~Phase H~~ | ~~Smart scheduling (optimal times from Time Fingerprint + calendar)~~ | ~~Done (Phase 56)~~ |
+| ~~3~~ | ~~Phase H~~ | ~~AI productivity coaching conversations~~ | ~~Done (Phase 57)~~ |
 | 4 | Phase I | Financial insights integration | Not started |
 | 5 | Phase I | Health data connections (Apple Health, Google Fit) | Not started |
 | 6 | Phase I | Automation workflows (IFTTT/Zapier-style triggers) | Not started |

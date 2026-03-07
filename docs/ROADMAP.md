@@ -146,11 +146,11 @@ These phases extend VitaMind toward the AI Life Intelligence Platform vision.
 - Supabase Edge Functions (compute-momentum, send-reminder, send-weekly-report)
 - pg_cron scheduling (momentum daily, reminders hourly, habits daily, weekly reports Monday 9am)
 
-### Phase H -- Behavioral Intelligence
+### Phase H -- Behavioral Intelligence -- **Complete**
 
-- Long-term behavioral trend analysis
-- Smart scheduling (AI suggests optimal times for tasks based on Time Fingerprint + calendar)
-- AI productivity coaching conversations
+- Long-term behavioral trend analysis (90-day momentum trends, weekly breakdowns, component trend directions)
+- Smart scheduling (AI suggests 3 optimal time slots using Time Fingerprint + Google Calendar availability)
+- AI productivity coaching conversations (Pattern Oracle insights + keystone habit injected into chat context)
 
 ### Phase I -- Life Ecosystem
 

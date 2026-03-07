@@ -2,6 +2,7 @@ import type { Task, Goal, Habit, HabitLog } from '@/lib/types'
 import type { MomentumSnapshot } from '@/features/momentum/types'
 import type { ProductivityProfile } from '@/features/time-fingerprint/services/time-fingerprint.service'
 import type { CalendarEvent } from '@/features/calendar/services/google-calendar'
+import type { PatternInsight } from '@/features/pattern-oracle/types'
 
 // Builds structured prompts for each AI use case.
 // Kept concise to minimise token usage and cost.
@@ -15,6 +16,8 @@ interface UserContext {
   momentum?: MomentumSnapshot | null
   timeFingerprint?: ProductivityProfile | null
   calendarEvents?: CalendarEvent[]
+  patterns?: PatternInsight[]
+  keystoneHabit?: { title: string; impact_score: number } | null
 }
 
 // ─── Daily Planner ────────────────────────────────────────────────────────────
@@ -58,7 +61,7 @@ export function buildDailyPlanPrompt(ctx: UserContext): string {
 
   // Time fingerprint context
   let fingerprintBlock = ''
-  if (ctx.timeFingerprint) {
+  if (ctx.timeFingerprint && ctx.timeFingerprint.peak_hours?.length) {
     const fp = ctx.timeFingerprint
     fingerprintBlock = `\nPRODUCTIVITY PROFILE:
 - Peak hours: ${fp.peak_hours.map((h) => `${h}:00`).join(', ')}
@@ -175,7 +178,7 @@ export function buildChatSystemPrompt(ctx: Omit<UserContext, 'date'>): string {
 
   // Time fingerprint for scheduling advice
   let fingerprintLine = ''
-  if (ctx.timeFingerprint) {
+  if (ctx.timeFingerprint && ctx.timeFingerprint.peak_hours?.length) {
     const fp = ctx.timeFingerprint
     fingerprintLine = `\n- Peak productivity: ${fp.peak_hours.map((h) => `${h}:00`).join(', ')} | Best window: ${fp.most_productive_window}`
   }
@@ -186,17 +189,29 @@ export function buildChatSystemPrompt(ctx: Omit<UserContext, 'date'>): string {
     calendarLine = `\n- Today's calendar: ${ctx.calendarEvents.length} events (${ctx.calendarEvents.map((e) => e.summary).join(', ')})`
   }
 
+  // Pattern Oracle insights for data-backed coaching
+  let patternsBlock = ''
+  if (ctx.patterns && ctx.patterns.length > 0) {
+    const topPatterns = ctx.patterns.slice(0, 4).map((p) => `  • ${p.title}: ${p.description}`).join('\n')
+    patternsBlock = `\nDiscovered behavioral patterns:\n${topPatterns}`
+    if (ctx.keystoneHabit) {
+      patternsBlock += `\n- Keystone habit: "${ctx.keystoneHabit.title}" (highest impact on productivity)`
+    }
+  }
+
   return `You are VitaMind, a calm and intelligent AI life coach and productivity assistant for ${ctx.name}.
 
 Current context:
 - Pending tasks: ${taskSummary || 'none'} (${overdueTasks.length} overdue)
 - Active goals: ${goalSummary || 'none'}
-- Active habits: ${ctx.habits.map((h) => h.title).join(', ') || 'none'}${behavioralBlock}${fingerprintLine}${calendarLine}
+- Active habits: ${ctx.habits.map((h) => h.title).join(', ') || 'none'}${behavioralBlock}${fingerprintLine}${calendarLine}${patternsBlock}
 
 COACHING GUIDELINES:
 - When asked about productivity, habits, or goals: reference the actual behavioral data above. Give specific, data-backed suggestions.
 - When momentum is low or burnout risk is high: be empathetic. Suggest recovery actions, not more work.
 - When a user has long streaks: acknowledge and reinforce them.
 - When habits are missed: gently suggest optimal times based on their productivity profile.
-- Always be concise, warm, and actionable. Never make up data — only reference what's in the context above.`
+- Always be concise, warm, and actionable. Never make up data — only reference what's in the context above.
+- When discussing patterns: reference the specific discovered correlations above for credibility.
+- When the keystone habit exists: encourage its consistency as the highest-leverage action.`
 }

@@ -9,6 +9,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../data/task_service.dart';
 import '../bloc/tasks_bloc.dart';
+import '../../../../features/smart_schedule/data/smart_schedule_service.dart';
 
 // Formats "HH:MM" (24-hour) to "h:MM AM/PM"
 String _formatTaskTime(String hhmm) {
@@ -708,6 +709,33 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
   RecurrencePattern _recurrencePattern = RecurrencePattern.weekly;
   String? _recurrenceEndDate;
 
+  // Smart schedule state
+  final _smartSchedule = SmartScheduleService();
+  bool _suggestingTime = false;
+  List<TimeSlot> _timeSlots = [];
+
+  Future<void> _suggestTime() async {
+    final title = _titleCtrl.text.trim();
+    if (title.isEmpty) return;
+    setState(() {
+      _suggestingTime = true;
+      _timeSlots = [];
+    });
+    try {
+      final result = await _smartSchedule.suggestSlots(
+        title: title,
+        priority: _priority.name,
+        date: _dueDate,
+      );
+      if (!mounted) return;
+      setState(() => _timeSlots = result.slots);
+    } catch (_) {
+      // Silently fail — user can pick time manually
+    } finally {
+      if (mounted) setState(() => _suggestingTime = false);
+    }
+  }
+
   @override
   void dispose() {
     _titleCtrl.dispose();
@@ -849,7 +877,86 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            // Smart schedule button
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _suggestingTime ? null : _suggestTime,
+                icon: _suggestingTime
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.primary),
+                      )
+                    : const Icon(Icons.auto_awesome_rounded,
+                        size: 14, color: AppColors.primary),
+                label: Text(
+                  _suggestingTime ? 'Finding best time…' : 'Suggest time',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.primary),
+                ),
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  backgroundColor:
+                      AppColors.primary.withValues(alpha: 0.08),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            // Time slot chips
+            if (_timeSlots.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: _timeSlots
+                    .map((slot) => GestureDetector(
+                          onTap: () => setState(() {
+                            _dueTime = slot.time;
+                            _timeSlots = [];
+                          }),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.3),
+                                  width: 1),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  slot.label,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                Text(
+                                  slot.reason,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.textTertiary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ],
+            const SizedBox(height: 12),
             // Recurring toggle
             Row(
               children: [

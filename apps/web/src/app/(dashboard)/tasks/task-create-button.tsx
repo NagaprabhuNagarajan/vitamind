@@ -1,9 +1,15 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { Plus, X, Repeat } from 'lucide-react'
+import { Plus, X, Repeat, Sparkles } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import type { Goal } from '@/lib/types'
+
+interface TimeSlot {
+  time: string   // HH:MM
+  label: string  // "9:00 AM"
+  reason: string
+}
 
 interface TaskCreateButtonProps {
   goals: Goal[]
@@ -15,6 +21,10 @@ export function TaskCreateButton({ goals }: TaskCreateButtonProps) {
   const [error, setError] = useState<string | null>(null)
 
   const [isRecurring, setIsRecurring] = useState(false)
+  const [dueTime, setDueTime] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const [suggestingTime, setSuggestingTime] = useState(false)
 
   // Close dialog on Escape key for keyboard accessibility
   useEffect(() => {
@@ -26,16 +36,33 @@ export function TaskCreateButton({ goals }: TaskCreateButtonProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [open])
 
+  async function suggestTime(title: string, priority: string) {
+    if (!title.trim()) return
+    setSuggestingTime(true)
+    setTimeSlots([])
+    try {
+      const res = await fetch('/api/v1/smart-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, priority, date: dueDate || undefined }),
+      })
+      const { data } = await res.json()
+      if (data?.slots) setTimeSlots(data.slots)
+    } catch {
+      // silently fail — user can still type manually
+    } finally {
+      setSuggestingTime(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    const dueDate = formData.get('due_date') as string | null
-    const dueTime = formData.get('due_time') as string | null
     const body: Record<string, unknown> = {
       title: formData.get('title'),
       priority: formData.get('priority'),
-      due_date: dueDate || null,
-      due_time: dueTime || null,
+      due_date: (formData.get('due_date') as string) || null,
+      due_time: dueTime || null,   // controlled — may have been set via smart schedule slot
       goal_id: formData.get('goal_id') || null,
     }
 
@@ -108,13 +135,72 @@ export function TaskCreateButton({ goals }: TaskCreateButtonProps) {
             </div>
             <div className="space-y-1">
               <label htmlFor="task-due-date" className="text-sm font-medium text-text-primary">Due date</label>
-              <input id="task-due-date" name="due_date" type="date" className="input" />
+              <input
+                id="task-due-date"
+                name="due_date"
+                type="date"
+                className="input"
+                value={dueDate}
+                onChange={(e) => { setDueDate(e.target.value); setTimeSlots([]) }}
+              />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="task-due-time" className="text-sm font-medium text-text-primary">Time <span className="text-text-tertiary font-normal">(optional)</span></label>
-            <input id="task-due-time" name="due_time" type="time" className="input" />
+            <div className="flex items-center justify-between">
+              <label htmlFor="task-due-time" className="text-sm font-medium text-text-primary">
+                Time <span className="text-text-tertiary font-normal">(optional)</span>
+              </label>
+              <button
+                type="button"
+                id="suggest-time-btn"
+                onClick={() => {
+                  const titleEl = document.getElementById('task-title') as HTMLInputElement | null
+                  const priorityEl = document.getElementById('task-priority') as HTMLSelectElement | null
+                  suggestTime(titleEl?.value ?? '', priorityEl?.value ?? 'medium')
+                }}
+                disabled={suggestingTime}
+                className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg transition-colors"
+                style={{
+                  background: 'rgba(99,102,241,0.12)',
+                  border: '1px solid rgba(99,102,241,0.25)',
+                  color: '#A5B4FC',
+                }}
+              >
+                {suggestingTime
+                  ? <><Spinner size="sm" /> Thinking…</>
+                  : <><Sparkles className="w-3 h-3" /> Suggest time</>
+                }
+              </button>
+            </div>
+            <input
+              id="task-due-time"
+              name="due_time"
+              type="time"
+              className="input"
+              value={dueTime}
+              onChange={(e) => { setDueTime(e.target.value); setTimeSlots([]) }}
+            />
+            {/* Smart schedule suggestions */}
+            {timeSlots.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {timeSlots.map((slot) => (
+                  <button
+                    key={slot.time}
+                    type="button"
+                    onClick={() => { setDueTime(slot.time); setTimeSlots([]) }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs transition-colors"
+                    style={{
+                      background: 'rgba(99,102,241,0.08)',
+                      border: '1px solid rgba(99,102,241,0.2)',
+                    }}
+                  >
+                    <span className="font-semibold text-text-primary">{slot.label}</span>
+                    <span className="text-text-tertiary ml-2">{slot.reason}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {goals.length > 0 && (
