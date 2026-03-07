@@ -314,15 +314,21 @@ These features evolve VitaMind from a productivity tool into an **AI Life Intell
 - 5 built-in example scenarios for quick start; stateless (no DB — generated fresh each time)
 - Available on: Web (`/life-simulation`) + Mobile (`LifeSimulationScreen`)
 
-### 17. AI Personal Knowledge Graph
-- Graph of relationships between habits, goals, productivity, and outcomes
-- Discover hidden patterns and identify keystone habits
-- Visualization: Meditation -> Focus up -> Tasks completed up -> Goals progress up
+### 17. AI Personal Knowledge Graph -- **Complete**
+- AI-computed directed graph of how habits, health, and productivity influence each other over 30 days
+- Per-habit task-correlation computed inline (avg tasks on habit days vs. non-habit days) to determine edge direction and strength
+- Identifies the single most influential "keystone" node
+- SVG graph visualization (web) with colour-coded nodes by type and directional edges; scrollable node/edge list (mobile)
+- Cached 24h in `ai_insights` via `getCachedInsight/saveInsight`; refresh via `?force=true`
+- API: `GET /api/v1/knowledge-graph`
+- Available on: Web (`/knowledge-graph`) + Mobile (`KnowledgeGraphScreen`)
 
-### 18. Life Auto Capture
-- Automatic data ingestion from external sources (calendar, email, phone usage, health, sleep)
-- Reduces manual input dramatically
-- Example insight: "You complete 40% more tasks on days you sleep 7+ hours"
+### 18. Life Auto Capture -- **Complete**
+- **Quick Log**: parse any free-form plain-English text into tasks, habit logs, or health entries using AI (e.g. "Meditated 20 mins, slept 7.5h, review report by Friday" → 1 task + 1 habit log + 1 health entry)
+- **Smart Suggestions**: surfaces upcoming Google Calendar events as preparatory task suggestions + un-logged habits as nudges
+- One-tap import of calendar suggestions into the task list
+- API: `GET /api/v1/auto-capture` (suggestions), `POST /api/v1/auto-capture` (quick-log), `POST /api/v1/auto-capture/import`
+- Available on: Web (`/auto-capture`) + Mobile (`AutoCaptureScreen`)
 
 ### 19. Future Self
 - Send messages to future self (time capsule)

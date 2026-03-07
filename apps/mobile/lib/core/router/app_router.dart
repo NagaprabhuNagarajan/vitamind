@@ -30,6 +30,8 @@ import '../../features/life_coach/presentation/screens/life_coach_screen.dart';
 import '../../features/companion/presentation/screens/companion_screen.dart';
 import '../../features/decisions/presentation/screens/decisions_screen.dart';
 import '../../features/life_simulation/presentation/screens/life_simulation_screen.dart';
+import '../../features/knowledge_graph/presentation/screens/knowledge_graph_screen.dart';
+import '../../features/auto_capture/presentation/screens/auto_capture_screen.dart';
 
 class Routes {
   static const splash = '/';
@@ -62,6 +64,8 @@ class Routes {
   static const companion = '/companion';
   static const decisions = '/decisions';
   static const lifeSimulation = '/life-simulation';
+  static const knowledgeGraph = '/knowledge-graph';
+  static const autoCapture = '/auto-capture';
 }
 
 class AppRouter {
@@ -124,6 +128,8 @@ class AppRouter {
       GoRoute(path: Routes.companion, builder: (_, __) => const CompanionScreen()),
       GoRoute(path: Routes.decisions, builder: (_, __) => const DecisionsScreen()),
       GoRoute(path: Routes.lifeSimulation, builder: (_, __) => const LifeSimulationScreen()),
+      GoRoute(path: Routes.knowledgeGraph, builder: (_, __) => const KnowledgeGraphScreen()),
+      GoRoute(path: Routes.autoCapture, builder: (_, __) => const AutoCaptureScreen()),
     ],
   );
 }

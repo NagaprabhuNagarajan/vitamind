@@ -1553,6 +1553,126 @@ Let users simulate what their life would look like 12 months from now if they co
 
 ---
 
+## Phase 66 -- Phase N (Part 1): Knowledge Graph
+
+### Goal
+Give users a visual map of how their habits, health, and productivity behaviours influence each other — an AI-computed directed graph over 30 days of real data. Cached 24 hours in `ai_insights` with `type = 'knowledge_graph'`.
+
+### Architecture
+
+**Service:** `apps/web/src/features/knowledge-graph/services/knowledge-graph.service.ts`
+
+`KnowledgeGraphService.getGraph(userId, force?)`:
+1. Cache-check via `getCachedInsight(userId, 'knowledge_graph')` — returns parsed `KnowledgeGraph` if fresh
+2. Parallel fetch: `habits` (active), `habit_logs` (30 days), `tasks` (30 days, for completion correlation), `goals` (incomplete), `HealthService.getInsights(30)`
+3. Computes per-habit task correlation: avg tasks completed on habit-completion days vs. non-habit days
+4. Builds AI prompt with habit summary (rate + correlation diff), health averages (sleep/mood/exercise + trends), goal summary, productivity rate
+5. AI responds with `GraphNode[]` + `GraphEdge[]` + `keystone_node` + `summary`
+6. Saves via `saveInsight(userId, 'knowledge_graph', JSON.stringify(graph))`
+
+**Types:**
+```ts
+interface GraphNode { id, label, type: 'habit'|'health'|'productivity'|'goal'|'outcome', strength: 0–100, description? }
+interface GraphEdge { from, to, label, strength: 0–100, direction: 'positive'|'negative'|'neutral' }
+interface KnowledgeGraph { nodes, edges, keystone_node, summary, has_enough_data, computed_at }
+```
+
+**API:** `GET /api/v1/knowledge-graph?force=true` — `RateLimitTier.ai`
+
+**Bug fix (prerequisite):** `InsightType` in `lib/types/index.ts` extended to include `'knowledge_graph'`; `CACHE_TTL` in `cache.ts` extended with `knowledge_graph: 24h` — without this, `getCachedInsight` would compute `new Date(NaN)` and throw a 500.
+
+### Web UI: `/knowledge-graph`
+
+**Files:** `apps/web/src/app/(dashboard)/knowledge-graph/page.tsx` + `knowledge-graph-view.tsx`
+
+- Summary card: node/edge count, computed date, keystone habit badge (gold star icon)
+- SVG graph: circle-layout positioning (deterministic ring), colour-coded by node type (habit=indigo, health=green, productivity=amber, goal=purple, outcome=cyan), edges drawn as lines with arrow markers (positive=green/negative=red/neutral=grey), line weight ∝ edge strength, edge labels shown on hover
+- Node tooltip: hover shows description in a `foreignObject` text box
+- Legend: node type colours + edge direction colours
+- Refresh button calls `?force=true`
+
+### Mobile: `KnowledgeGraphScreen`
+
+**Files:**
+- `apps/mobile/lib/features/knowledge_graph/data/knowledge_graph_service.dart` — `KnowledgeGraphService.getGraph({force})`; models: `KnowledgeGraph`, `GraphNode`, `GraphEdge`
+- `apps/mobile/lib/features/knowledge_graph/presentation/screens/knowledge_graph_screen.dart` — summary card (summary + keystone badge), scrollable node list (coloured left-border by type, strength number), scrollable edge list (from→to with direction badge)
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/lib/types/index.ts` | MODIFIED — added `'knowledge_graph'` to `InsightType` |
+| `apps/web/src/features/ai/services/cache.ts` | MODIFIED — added `knowledge_graph: 24h` to `CACHE_TTL` |
+| `apps/web/src/features/knowledge-graph/services/knowledge-graph.service.ts` | NEW (rewritten clean) |
+| `apps/web/src/app/api/v1/knowledge-graph/route.ts` | NEW — GET |
+| `apps/web/src/app/(dashboard)/knowledge-graph/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/knowledge-graph/knowledge-graph-view.tsx` | NEW |
+| `apps/mobile/lib/features/knowledge_graph/data/knowledge_graph_service.dart` | NEW |
+| `apps/mobile/lib/features/knowledge_graph/presentation/screens/knowledge_graph_screen.dart` | NEW |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Knowledge Graph (`Network` icon) |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — `Routes.knowledgeGraph` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Knowledge Graph tile |
+
+---
+
+## Phase 67 -- Phase N (Part 2): Auto Capture
+
+### Goal
+Two capabilities in one feature: (1) **Smart Suggestions** — surface actionable items from Google Calendar events + un-logged habits, so nothing slips through the cracks; (2) **Quick Log** — parse any free-form plain-English text into structured tasks, habit logs, or health entries using AI, with a single tap.
+
+### Architecture
+
+**Service:** `apps/web/src/features/auto-capture/services/auto-capture.service.ts`
+
+`AutoCaptureService.getSuggestions(userId)`:
+1. Fetches calendar connection → `listCalendarEvents(token, now, tomorrow)` → converts upcoming events to task suggestions (`type: 'task'`, `source: 'calendar'`, confidence 70%)
+2. Fetches active habits not yet logged today → `type: 'habit_log'`, `source: 'pattern'`, confidence 90%
+3. Returns up to 15 `CaptureSuggestion` items
+
+`AutoCaptureService.importCalendarEvent(userId, suggestion)`:
+- Inserts a task into `tasks` table with due_date/due_time from calendar event
+
+`AutoCaptureService.quickLog(userId, text)`:
+1. Fetches user's habit list for ID-resolution context
+2. Sends text to AI with habit list; AI extracts `tasks[]`, `habit_logs[]`, `health{}`
+3. Inserts tasks, upserts habit_logs (onConflict: `habit_id,date`), upserts health_entries (onConflict: `user_id,date`)
+4. Returns `QuickLogResult { actions_taken[], tasks_created, habits_logged, health_entries_created }`
+
+**API:**
+- `GET /api/v1/auto-capture` — returns suggestions (`RateLimitTier.standard`)
+- `POST /api/v1/auto-capture` — quick-log text (`RateLimitTier.ai`)
+- `POST /api/v1/auto-capture/import` — import one calendar suggestion as a task (`RateLimitTier.standard`)
+
+### Web UI: `/auto-capture`
+
+**Files:** `apps/web/src/app/(dashboard)/auto-capture/page.tsx` + `auto-capture-view.tsx`
+
+- Quick Log card: textarea, `⌘+Enter` shortcut, green success card showing `actions_taken[]`
+- Smart Suggestions: cards showing source icon (Calendar=indigo / Pattern=purple), type badge, confidence %, title, due info; "Add Task" button imports calendar suggestions; habit suggestions shown as informational (no import needed — user can log directly)
+
+### Mobile: `AutoCaptureScreen`
+
+**Files:**
+- `apps/mobile/lib/features/auto_capture/data/auto_capture_service.dart` — `AutoCaptureService.getSuggestions()`, `importSuggestion(s)`, `quickLog(text)`; models: `CaptureSuggestion`, `QuickLogResult`
+- `apps/mobile/lib/features/auto_capture/presentation/screens/auto_capture_screen.dart` — Quick Log `TextField` (3 lines) + Log It button, success card with check icons per action, suggestion tiles with source icon + type badge + import button
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/features/auto-capture/services/auto-capture.service.ts` | NEW |
+| `apps/web/src/app/api/v1/auto-capture/route.ts` | NEW — GET + POST |
+| `apps/web/src/app/api/v1/auto-capture/import/route.ts` | NEW — POST |
+| `apps/web/src/app/(dashboard)/auto-capture/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/auto-capture/auto-capture-view.tsx` | NEW |
+| `apps/mobile/lib/features/auto_capture/data/auto_capture_service.dart` | NEW |
+| `apps/mobile/lib/features/auto_capture/presentation/screens/auto_capture_screen.dart` | NEW |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Auto Capture (`ScanSearch` icon) |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — `Routes.autoCapture` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Auto Capture tile |
+
+---
+
 ## Backlog -- Pending Items
 
 ### Requires Manual Action
@@ -1575,10 +1695,6 @@ Let users simulate what their life would look like 12 months from now if they co
 | 1 | Phase J | Razorpay integration (UPI, net banking, cards) | Not started |
 | 2 | Phase J | Pro tier feature gating | Not started |
 | 3 | Phase J | Team tier: shared accountability contracts | Not started |
-| ~~4~~ | ~~Phase M~~ | ~~Decision Engine (AI-assisted decision making)~~ | ~~Done (Phase 64)~~ |
-| ~~5~~ | ~~Phase M~~ | ~~Life Simulation (future scenario modeling)~~ | ~~Done (Phase 65)~~ |
-| 6 | Phase N | AI Personal Knowledge Graph | Not started |
-| 7 | Phase N | Life Auto Capture (calendar, email, health data ingestion) | Not started |
-| 8 | Phase O | Social Accountability Layer | Not started |
-| 9 | Phase O | Future Self (time capsule + AI predictions) | Not started |
-| 10 | -- | Apple Calendar sync | Not started |
+| 4 | Phase O | Social Accountability Layer | Not started |
+| 5 | Phase O | Future Self (time capsule + AI predictions) | Not started |
+| 6 | -- | Apple Calendar sync | Not started |

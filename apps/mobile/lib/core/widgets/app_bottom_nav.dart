@@ -273,6 +273,24 @@ class _MoreBottomSheet extends StatelessWidget {
                 },
               ),
               _MoreTile(
+                icon: Icons.hub_outlined,
+                label: 'Knowledge Graph',
+                subtitle: 'See how your habits influence outcomes',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.knowledgeGraph);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.bolt_outlined,
+                label: 'Auto Capture',
+                subtitle: 'Quick-log anything in plain English',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.autoCapture);
+                },
+              ),
+              _MoreTile(
                 icon: Icons.calendar_today_outlined,
                 label: 'Planner',
                 subtitle: 'AI-generated daily plan',

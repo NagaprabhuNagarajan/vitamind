@@ -10,7 +10,7 @@ export type HabitFrequency = 'daily' | 'weekly' | 'weekdays' | 'weekends'
 
 export type HabitLogStatus = 'completed' | 'skipped' | 'missed'
 
-export type InsightType = 'daily_plan' | 'productivity' | 'life_optimization' | 'life_coach' | 'cross_domain'
+export type InsightType = 'daily_plan' | 'productivity' | 'life_optimization' | 'life_coach' | 'cross_domain' | 'knowledge_graph'
 
 // ─── Database Models (matches Supabase schema) ────────────────────────────────
 

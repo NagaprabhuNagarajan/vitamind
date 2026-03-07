@@ -192,10 +192,12 @@ These features evolve VitaMind from a productivity tool into an AI Life Intellig
 
 **Migrations**: `decisions` table added to `backend/supabase/schema.sql`
 
-### Phase N -- Knowledge Graph + Auto Capture
+### Phase N -- Knowledge Graph + Auto Capture -- **Complete**
 
-- **AI Personal Knowledge Graph**: Graph of relationships between habits, goals, productivity, and outcomes. Discover hidden patterns and keystone habits. (e.g., Meditation -> Focus up -> Tasks completed up -> Goals progress up)
-- **Life Auto Capture**: Automatic data ingestion from calendar, email summaries, phone usage, health data, sleep tracking. Reduces manual input.
+- **AI Personal Knowledge Graph** ✅: Directed graph of habit/health/productivity influence relationships computed from 30 days of real data. Identifies keystone habits. SVG graph (web) + scrollable list (mobile). `GET /api/v1/knowledge-graph`. Cached 24h.
+- **Life Auto Capture** ✅: Quick-log any text in plain English → AI parses into tasks/habit logs/health entries. Smart suggestions from Google Calendar events + un-logged habits. `GET|POST /api/v1/auto-capture`, `POST /api/v1/auto-capture/import`.
+
+**Key files**: `features/knowledge-graph/services/knowledge-graph.service.ts`, `features/auto-capture/services/auto-capture.service.ts`, `app/api/v1/knowledge-graph/`, `app/api/v1/auto-capture/`
 
 ### Phase O -- Social + Future Self
 
