@@ -26,6 +26,8 @@ import '../../features/accountability/presentation/screens/contracts_screen.dart
 import '../../features/time_fingerprint/presentation/screens/time_fingerprint_screen.dart';
 import '../../features/timeline/presentation/screens/timeline_screen.dart';
 import '../../features/life_map/presentation/screens/life_map_screen.dart';
+import '../../features/life_coach/presentation/screens/life_coach_screen.dart';
+import '../../features/companion/presentation/screens/companion_screen.dart';
 
 class Routes {
   static const splash = '/';
@@ -54,6 +56,8 @@ class Routes {
   static const timeFingerprint = '/time-fingerprint';
   static const timeline = '/timeline';
   static const lifeMap = '/life-map';
+  static const lifeCoach = '/life-coach';
+  static const companion = '/companion';
 }
 
 class AppRouter {
@@ -112,6 +116,8 @@ class AppRouter {
       GoRoute(path: Routes.timeFingerprint, builder: (_, __) => const TimeFingerprintScreen()),
       GoRoute(path: Routes.timeline, builder: (_, __) => const TimelineScreen()),
       GoRoute(path: Routes.lifeMap, builder: (_, __) => const LifeMapScreen()),
+      GoRoute(path: Routes.lifeCoach, builder: (_, __) => const LifeCoachScreen()),
+      GoRoute(path: Routes.companion, builder: (_, __) => const CompanionScreen()),
     ],
   );
 }

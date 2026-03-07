@@ -237,6 +237,24 @@ class _MoreBottomSheet extends StatelessWidget {
                 },
               ),
               _MoreTile(
+                icon: Icons.psychology_outlined,
+                label: 'Life Coach',
+                subtitle: 'Proactive AI coaching insights',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.lifeCoach);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.favorite_outlined,
+                label: 'Life Companion',
+                subtitle: 'Your warm, emotionally intelligent AI',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.companion);
+                },
+              ),
+              _MoreTile(
                 icon: Icons.calendar_today_outlined,
                 label: 'Planner',
                 subtitle: 'AI-generated daily plan',

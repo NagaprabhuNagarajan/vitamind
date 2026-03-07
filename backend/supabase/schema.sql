@@ -803,3 +803,25 @@ ALTER TABLE public.automation_rules ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users manage own automation_rules" ON public.automation_rules;
 CREATE POLICY "Users manage own automation_rules" ON public.automation_rules
   FOR ALL USING (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Phase L: AI Life Coach + AI Life Companion
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ── Companion Memory ──────────────────────────────────────────────────────────
+-- Stores the evolving personality + pattern memory for the AI Life Companion.
+-- One row per user per memory_key (upsert on conflict).
+
+CREATE TABLE IF NOT EXISTS public.companion_memory (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  memory_key  TEXT        NOT NULL,   -- 'personality', 'seasonal', 'struggles', 'victories', 'preferences'
+  content     TEXT        NOT NULL,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, memory_key)
+);
+
+ALTER TABLE public.companion_memory ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own companion_memory" ON public.companion_memory;
+CREATE POLICY "Users manage own companion_memory" ON public.companion_memory
+  FOR ALL USING (auth.uid() = user_id);

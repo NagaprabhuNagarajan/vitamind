@@ -22,6 +22,8 @@ import {
   Wallet,
   Heart,
   Zap,
+  UserCircle2,
+  BrainCog,
 } from 'lucide-react'
 import { LogoutDialog } from './logout-dialog'
 
@@ -42,6 +44,8 @@ const NAV_ITEMS = [
   { href: '/finance',            label: 'Finance',      icon: Wallet },
   { href: '/health',             label: 'Health',       icon: Heart },
   { href: '/automations',        label: 'Automations',  icon: Zap },
+  { href: '/life-coach',         label: 'Life Coach',   icon: BrainCog },
+  { href: '/companion',          label: 'Companion',    icon: UserCircle2 },
   { href: '/settings',           label: 'Settings',     icon: Settings },
 ]
 

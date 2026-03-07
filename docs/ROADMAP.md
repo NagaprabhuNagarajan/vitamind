@@ -178,10 +178,12 @@ These features evolve VitaMind from a productivity tool into an AI Life Intellig
 
 **Migrations**: `014_life_timeline.sql`, `015_life_map_domain.sql`
 
-### Phase L -- AI Life Coach + AI Life Companion
+### Phase L -- AI Life Coach + AI Life Companion -- **Complete**
 
-- **AI Life Coach**: Behavioral pattern analysis with improvement suggestions. Detects productivity drops, suggests habit reinforcement and lifestyle adjustments. (e.g., "You skip gym when you sleep after 1AM.")
-- **AI Life Companion**: Persistent AI that learns user personality and history. Emotional support, context-aware advice, seasonal awareness. (e.g., "You usually feel less motivated in March.")
+- **AI Life Coach**: Proactive, data-backed coaching report generated from tasks, habits, momentum, burnout, health, and time fingerprint data. Returns 4–5 insights each with observation, recommended action, impact, domain, and urgency. 24-hour cache with force-refresh. API: `GET /api/v1/ai/life-coach`. Web: `/life-coach`. Mobile: `LifeCoachScreen`.
+- **AI Life Companion**: Persistent memory system (`companion_memory` table, one row per memory key). Memory auto-initialised from existing user data on first chat. Updated after each conversation via AI extraction. Time-of-day + seasonal aware system prompt. Memory keys: personality, seasonal, struggles, victories, preferences. API: `POST /api/v1/ai/companion`. Web: `/companion`. Mobile: `CompanionScreen`.
+
+**Migrations**: `companion_memory` table added to `backend/supabase/schema.sql`
 
 ### Phase M -- Decision Engine + Life Simulation
 

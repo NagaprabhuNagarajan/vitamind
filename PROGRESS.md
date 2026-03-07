@@ -1092,51 +1092,6 @@
 
 ---
 
-## Backlog -- Pending Items
-
-### Requires Manual Action
-
-| # | Item | Status |
-|---|------|--------|
-| ~~1~~ | ~~Apply DB migration 014 (Life Timeline)~~ | ~~Done~~ |
-| ~~2~~ | ~~Apply DB migration 015 (Life Map)~~ | ~~Done~~ |
-| ~~3~~ | ~~Resend API key for weekly email reports~~ | ~~Done~~ |
-| ~~4~~ | ~~Mobile Sentry — wired up in main.dart~~ | ~~Done~~ |
-| ~~5~~ | ~~Mobile PostHog — wired up in main.dart~~ | ~~Done~~ |
-| 6 | Mobile app store builds | Pending — build and publish to Google Play / Apple App Store |
-
-### Known Limitations
-
-| # | Item | Details |
-|---|------|---------|
-| 1 | Voice Log requires HTTPS | Web Speech API needs secure context; works in production but not on localhost HTTP |
-| 2 | Google OAuth "unverified app" warning | Expected during development; submit app for Google verification before public launch |
-
-### Future Development (from Roadmap)
-
-| # | Phase | Feature | Status |
-|---|-------|---------|--------|
-| ~~1~~ | ~~Phase H~~ | ~~Calendar-aware AI daily planning (AI sees meetings)~~ | ~~Done (Phase 55)~~ |
-| ~~2~~ | ~~Phase H~~ | ~~Smart scheduling (optimal times from Time Fingerprint + calendar)~~ | ~~Done (Phase 56)~~ |
-| ~~3~~ | ~~Phase H~~ | ~~AI productivity coaching conversations~~ | ~~Done (Phase 57)~~ |
-| ~~4~~ | ~~Phase I~~ | ~~Financial insights integration~~ | ~~Done (Phase 58)~~ |
-| ~~5~~ | ~~Phase I~~ | ~~Health data connections (Apple Health, Google Fit)~~ | ~~Done (Phase 59)~~ |
-| ~~6~~ | ~~Phase I~~ | ~~Automation workflows (IFTTT/Zapier-style triggers)~~ | ~~Done (Phase 60)~~ |
-| 7 | Phase J | Razorpay integration (UPI, net banking, cards) | Not started |
-| 8 | Phase J | Pro tier feature gating | Not started |
-| 9 | Phase J | Team tier: shared accountability contracts | Not started |
-| 10 | Phase L | AI Life Coach (behavioral pattern analysis) | Not started |
-| 11 | Phase L | AI Life Companion (persistent personality-aware AI) | Not started |
-| 12 | Phase M | Decision Engine (AI-assisted decision making) | Not started |
-| 13 | Phase M | Life Simulation (future scenario modeling) | Not started |
-| 14 | Phase N | AI Personal Knowledge Graph | Not started |
-| 15 | Phase N | Life Auto Capture (calendar, email, health data ingestion) | Not started |
-| 16 | Phase O | Social Accountability Layer | Not started |
-| 17 | Phase O | Future Self (time capsule + AI predictions) | Not started |
-| 18 | -- | Apple Calendar sync | Not started |
-
----
-
 ## Phase 58 -- Phase I: Financial Tracking
 
 | Task | Status |
@@ -1189,3 +1144,292 @@
 | Prompt: finds correlations across domains, identifies highest-leverage action | Done |
 | 6-hour cache via ai_insights table | Done |
 | Returns: insights array, top_leverage message, finance_summary, health_insights | Done |
+
+---
+
+## Phase 62 -- Phase L: AI Life Coach
+
+### Goal
+Replace generic AI chat with a **proactive, data-backed coaching report** generated from the user's own behavioural data — tasks, habits, momentum, burnout risk, health trends, and time fingerprint. No user prompt required. The coach surfaces what matters most, unprompted.
+
+### Architecture
+
+**Service:** `apps/web/src/features/life-coach/services/life-coach.service.ts`
+
+`LifeCoachService.generateReport(userId, force?)` is the core method. It:
+
+1. Checks `ai_insights` table for a cached report (`insight_type = 'life_coach'`) less than 24 hours old — returns it immediately if valid and `force` is not set
+2. Fetches 7 data sources **in parallel** via `Promise.all`:
+   - Recent tasks (last 50: title, status, priority, due_date, completed_at)
+   - Active habits + last 30 days of habit logs (to compute streaks and miss rates)
+   - Current momentum score + burnout risk (`MomentumService.getCurrentScore`)
+   - Pattern Oracle insights + keystone habit (`PatternOracleService.getInsights`)
+   - Last 7 days of health entries (sleep, steps, exercise, mood)
+   - Time fingerprint (peak hours, low-energy hours, from `users.productivity_profile`)
+3. Computes derived metrics inline:
+   - `completionRate`: completed tasks / total tasks (last 50)
+   - `overdueTasks`: tasks past due_date and not completed
+   - `habitStreaks`: per-habit consecutive-day streak calculated from log dates
+   - `missedHabits`: habits where completion rate < 50% over 30 days
+   - `avgSleep`, `avgMood` from health entries
+4. Builds a detailed prompt (≈600 tokens) that includes all derived data and instructs the AI to return **4–5 coaching insights** as a JSON object
+
+**Prompt structure:**
+```
+User Data Summary:
+- Tasks: X completed of Y (last 30 days). Overdue: Z.
+- Habits: [habit name]: X-day streak, X% completion over 30 days
+- Momentum: 72/100 | Burnout risk: 38/100
+- Key patterns: [pattern titles from Pattern Oracle]
+- Keystone habit: meditation
+- Health (7d avg): sleep 6.8h, mood 3.4/5, exercise 22min/day
+- Peak hours: 9, 10, 11 | Low-energy: 14, 15
+
+Generate 4-5 specific, data-backed coaching insights...
+Return JSON: { summary, focus_this_week, insights: [{title, observation, action, impact, domain, urgency}] }
+```
+
+5. Parses the AI response, validates it, and upserts to `ai_insights` with 24-hour TTL
+
+**API:** `apps/web/src/app/api/v1/ai/life-coach/route.ts`
+- `GET /api/v1/ai/life-coach` — returns cached or freshly generated report
+- `GET /api/v1/ai/life-coach?force=true` — bypasses cache and regenerates
+- Rate limited to `RateLimitTier.ai`
+
+### Response Shape
+
+```ts
+{
+  summary: string               // 2-3 sentence overall coaching summary
+  focus_this_week: string       // Single highest-priority focus
+  insights: Array<{
+    title: string               // Short, action-oriented headline
+    observation: string         // What the data shows (specific numbers)
+    action: string              // Concrete recommended action
+    impact: string              // Expected outcome if action is taken
+    domain: string              // 'health' | 'productivity' | 'habits' | 'finance' | 'mindset' | 'goals'
+    urgency: 'high' | 'medium' | 'low'
+  }>
+  generated_at: string          // ISO timestamp
+}
+```
+
+### Web UI: `/life-coach`
+
+**Files:** `apps/web/src/app/(dashboard)/life-coach/page.tsx` + `life-coach-view.tsx`
+
+- Page header with "Generated at" timestamp and **Regenerate** button (calls `?force=true`, shows spinner)
+- **Summary card**: gradient background (indigo→purple), displays `summary` + `focus_this_week` block
+- **Insight cards**: one card per insight
+  - Domain icon (Heart=health, Zap=productivity, TrendingUp=habits, DollarSign=finance, Brain=mindset, Flame=goals)
+  - Urgency badge: red=high, yellow=medium, green=low
+  - `observation` text (full width)
+  - Side-by-side mini-blocks: **Action** + **Impact**
+- Loading state: centered spinner + "Analysing your data…" message
+- Error state: red alert card with message
+
+### Mobile: `LifeCoachScreen`
+
+**Files:**
+- `apps/mobile/lib/features/life_coach/data/life_coach_service.dart` — `LifeCoachService.getReport({force})`; maps API response to `CoachReport` + `CoachingInsight` models
+- `apps/mobile/lib/features/life_coach/presentation/screens/life_coach_screen.dart`
+
+Screen layout:
+- `AppBar` with refresh icon button (`?force=true` on tap, shows `CircularProgressIndicator` while regenerating)
+- Generated timestamp subtitle
+- **Summary card**: gradient container (indigo→purple tint), summary text + focus-this-week block with divider
+- **Insight cards**: domain icon in rounded container, urgency chip (color-coded), observation text, two `_miniBlock` widgets side-by-side for action + impact
+- Pull-to-refresh triggers force regeneration
+- Loading: centered spinner + label; Error: red text
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/features/life-coach/services/life-coach.service.ts` | NEW — full service |
+| `apps/web/src/app/api/v1/ai/life-coach/route.ts` | NEW — GET endpoint |
+| `apps/web/src/app/(dashboard)/life-coach/page.tsx` | NEW — page wrapper |
+| `apps/web/src/app/(dashboard)/life-coach/life-coach-view.tsx` | NEW — full UI |
+| `apps/mobile/lib/features/life_coach/data/life_coach_service.dart` | NEW — service + models |
+| `apps/mobile/lib/features/life_coach/presentation/screens/life_coach_screen.dart` | NEW — full screen |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Life Coach nav item (`BrainCog` icon) |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — added `Routes.lifeCoach` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — added Life Coach tile to More sheet |
+
+---
+
+## Phase 63 -- Phase L: AI Life Companion
+
+### Goal
+A **relationship-style AI**, distinct from the productivity-focused AI Assistant. The companion remembers who the user is, grows with them over time, provides emotional support, and is seasonally and time-of-day aware. Unlike AI chat (stateless, context from dashboard data), the companion has **persistent memory** — a database-backed personality profile that evolves after every conversation.
+
+### Memory System
+
+**DB Table:** `companion_memory` (from `backend/supabase/schema.sql`)
+
+```sql
+CREATE TABLE companion_memory (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
+  memory_key  TEXT NOT NULL,  -- 'personality' | 'seasonal' | 'struggles' | 'victories' | 'preferences'
+  content     TEXT NOT NULL,
+  updated_at  TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, memory_key)
+);
+```
+
+Five memory keys, each holding 1–3 sentences:
+- `personality` — inferred communication style and personality traits
+- `seasonal` — what this time of year typically means for this user
+- `struggles` — recurring challenges observed from their data
+- `victories` — wins and milestones worth acknowledging
+- `preferences` — what the user cares about most (domains, focus areas)
+
+**Service:** `apps/web/src/features/companion/services/companion.service.ts`
+
+Four static methods:
+
+**`getMemory(userId)`**
+- Reads all rows from `companion_memory` for this user
+- Returns `Partial<CompanionMemory>` object keyed by memory key
+
+**`updateMemory(userId, key, content)`**
+- Upserts to `companion_memory` on conflict `(user_id, memory_key)`
+- Automatically updates `updated_at`
+
+**`initialiseMemoryIfEmpty(userId)`**
+- Called on every companion chat load (safe to call repeatedly — skips if ≥ 3 keys already exist)
+- Fetches user's name, member-since date, recent task titles, top Pattern Oracle insights, and momentum score **in parallel**
+- Builds an AI prompt asking for all 5 memory keys as JSON
+- Parses response and upserts each key
+- On AI failure: falls back to two hardcoded defaults (personality + seasonal) so the companion is never blank
+
+**`buildSystemPrompt(userId, userName)`**
+- Reads memory via `getMemory()`
+- Computes time-of-day (`morning` / `afternoon` / `evening`) from current hour
+- Gets current month name
+- Returns a rich system prompt:
+
+```
+You are VitaMind Companion, a warm and emotionally intelligent AI life companion for {name}.
+It is currently {timeOfDay} in {month}.
+
+What you know about {name}:
+Personality: Goal-oriented and self-improving. Prefers direct, actionable advice.
+Seasonal: January is typically a time of high motivation and fresh starts for this user.
+Struggles: Tends to overcommit in early months; burnout risk rises in Q1.
+Victories: Completed 47 tasks last month; maintained gym habit for 14 days straight.
+Preferences: Deeply values health and career growth above other domains.
+
+Your role:
+- Be a trusted companion, not just a productivity tool
+- Reference what you know about them naturally (not robotically)
+- Provide emotional support when they seem stressed or struggling
+- Celebrate their wins genuinely
+- Be seasonally aware — acknowledge how {month} feels and what it brings
+- Ask follow-up questions to deepen your understanding
+- When appropriate, update your understanding of them based on what they share
+
+Tone: Warm, honest, insightful. Like a wise friend who genuinely knows you.
+```
+
+**`updateMemoryFromConversation(userId, messages)`**
+- Called **after** each AI reply (fire-and-forget, non-blocking)
+- Skips if fewer than 4 messages (not enough context to learn from)
+- Takes last 10 messages from conversation
+- Sends to AI: "identify NEW insights that should update companion memory. Only include if meaningfully new."
+- Response is a partial JSON — only updates keys where something new was learned
+- Silently swallows errors (non-critical)
+
+### API: `POST /api/v1/ai/companion`
+
+**File:** `apps/web/src/app/api/v1/ai/companion/route.ts`
+
+Flow:
+1. `requireAuth()` — validate session
+2. Parse + validate `messages[]` array (max 20 messages, max 4000 chars each)
+3. Fetch user's name from `users` table
+4. `CompanionService.initialiseMemoryIfEmpty(userId)` — no-op if already set
+5. `CompanionService.buildSystemPrompt(userId, userName)` — personalised prompt with memory
+6. `complete({ messages: [system, ...last12messages], maxTokens: 600, temperature: 0.75 })` — slightly warmer temperature than AI chat (0.7) for more natural emotional responses
+7. Fire-and-forget: `CompanionService.updateMemoryFromConversation(userId, allMessages)` — does not block the response
+8. Return `{ message: { role, content }, timestamp }`
+
+Rate limited to `RateLimitTier.ai`.
+
+### Web UI: `/companion`
+
+**Files:** `apps/web/src/app/(dashboard)/companion/page.tsx` + `companion-chat.tsx`
+
+Visually distinct from AI Chat (which uses primary/indigo):
+- **Purple-themed** (`#A855F7` secondary colour) — heart icon instead of sparkles
+- Avatar: small heart circle next to each assistant bubble
+- Assistant bubbles: purple-tinted background (`rgba(168,85,247,0.08)`) with purple border
+- Send button: purple gradient
+- Empty state: explains the companion remembers the user and grows over time
+- Starter prompts: emotionally oriented ("How am I doing lately?", "I'm feeling overwhelmed today", "Help me reflect on this week")
+
+### Mobile: `CompanionScreen`
+
+**Files:**
+- `apps/mobile/lib/features/companion/data/companion_service.dart` — `CompanionService.sendMessage(history, text)`; maps history to API format, returns `CompanionMessage`
+- `apps/mobile/lib/features/companion/presentation/screens/companion_screen.dart`
+
+Screen mirrors `AiScreen` architecture but with:
+- Heart icon instead of sparkles in avatar + empty state
+- Purple gradient send button (instead of indigo)
+- `focusedBorder` in input uses `AppColors.secondary` (purple) instead of `AppColors.primary`
+- Bubble border/background uses `AppColors.secondary` tints
+- Calls `POST /api/v1/ai/companion` instead of `/ai/chat`
+- Includes `_TypingDots` animated widget (same as AiScreen)
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/features/companion/services/companion.service.ts` | NEW — full service with memory |
+| `apps/web/src/app/api/v1/ai/companion/route.ts` | NEW — POST endpoint |
+| `apps/web/src/app/(dashboard)/companion/page.tsx` | NEW — page wrapper |
+| `apps/web/src/app/(dashboard)/companion/companion-chat.tsx` | NEW — purple-themed chat UI |
+| `apps/mobile/lib/features/companion/data/companion_service.dart` | NEW — service + models |
+| `apps/mobile/lib/features/companion/presentation/screens/companion_screen.dart` | NEW — full screen |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Companion nav item (`UserCircle2` icon) |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — added `Routes.companion` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — added Life Companion tile to More sheet |
+| `backend/supabase/schema.sql` | MODIFIED — added `companion_memory` table + RLS |
+| `docs/ROADMAP.md` | MODIFIED — Phase L marked Complete |
+| `docs/FEATURES.md` | MODIFIED — Features 14 + 22 marked Complete |
+
+---
+
+## Backlog -- Pending Items
+
+### Requires Manual Action
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Mobile app store builds | Pending — build and publish to Google Play / Apple App Store |
+
+### Known Limitations
+
+| # | Item | Details |
+|---|------|---------|
+| 1 | Voice Log requires HTTPS | Web Speech API needs secure context; works in production but not on localhost HTTP |
+| 2 | Google OAuth "unverified app" warning | Expected during development; submit app for Google verification before public launch |
+
+### Future Development (from Roadmap)
+
+| # | Phase | Feature | Status |
+|---|-------|---------|--------|
+| 1 | Phase J | Razorpay integration (UPI, net banking, cards) | Not started |
+| 2 | Phase J | Pro tier feature gating | Not started |
+| 3 | Phase J | Team tier: shared accountability contracts | Not started |
+| 4 | Phase M | Decision Engine (AI-assisted decision making) | Not started |
+| 5 | Phase M | Life Simulation (future scenario modeling) | Not started |
+| 6 | Phase N | AI Personal Knowledge Graph | Not started |
+| 7 | Phase N | Life Auto Capture (calendar, email, health data ingestion) | Not started |
+| 8 | Phase O | Social Accountability Layer | Not started |
+| 9 | Phase O | Future Self (time capsule + AI predictions) | Not started |
+| 10 | -- | Apple Calendar sync | Not started |
+
+---

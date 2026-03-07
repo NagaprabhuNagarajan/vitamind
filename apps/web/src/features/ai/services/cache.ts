@@ -2,9 +2,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import type { InsightType } from '@/lib/types'
 
 const CACHE_TTL: Record<InsightType, number> = {
-  daily_plan: 12 * 60 * 60 * 1000,      // 12 hours — one plan per half-day
-  productivity: 6 * 60 * 60 * 1000,     // 6 hours
+  daily_plan: 12 * 60 * 60 * 1000,        // 12 hours — one plan per half-day
+  productivity: 6 * 60 * 60 * 1000,       // 6 hours
   life_optimization: 24 * 60 * 60 * 1000, // 24 hours
+  life_coach: 24 * 60 * 60 * 1000,        // 24 hours
+  cross_domain: 6 * 60 * 60 * 1000,       // 6 hours
 }
 
 // Returns cached AI response if still fresh, null otherwise

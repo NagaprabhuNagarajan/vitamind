@@ -294,10 +294,11 @@ These features evolve VitaMind from a productivity tool into an **AI Life Intell
 - Searchable history ("When did I start that project?")
 - Available on: Web + Mobile
 
-### 14. AI Life Coach
-- Behavioral pattern analysis with improvement suggestions
-- Detects productivity drops, habit reinforcement suggestions, lifestyle adjustments
-- Example: "You skipped the gym 3 times this week. You tend to skip workouts when you sleep after 1AM. Consider moving gym to evenings."
+### 14. AI Life Coach -- **Complete**
+- Proactive coaching report generated from tasks, habits, momentum, burnout, health, and time fingerprint data
+- 4–5 data-backed insights each with observation, recommended action, expected impact, domain tag, and urgency level (high/medium/low)
+- 24-hour cache with force-refresh option
+- Available on: Web (`/life-coach`) + Mobile (`LifeCoachScreen`)
 
 ### 15. Decision Engine
 - AI-assisted decision making for personal and professional choices
@@ -340,10 +341,12 @@ These features evolve VitaMind from a productivity tool into an **AI Life Intell
 - Friendly competition and public progress boards
 - Example: "Your friend completed 6 habits today"
 
-### 22. AI Life Companion
-- Persistent AI that learns user personality, preferences, and history over time
-- Personalized insights, emotional support, context-aware advice
-- Seasonal awareness: "You usually feel less motivated in March. Let's plan something energizing."
+### 22. AI Life Companion -- **Complete**
+- Persistent memory system (`companion_memory` table) with 5 memory keys: personality, seasonal, struggles, victories, preferences
+- Memory auto-initialised from existing user data (tasks, habits, momentum, patterns) on first chat via AI
+- Updated after each conversation — AI extracts new learnings and upserts only changed keys
+- Time-of-day + month-aware system prompt; emotionally warm persona distinct from AI Assistant
+- Available on: Web (`/companion`) + Mobile (`CompanionScreen`)
 
 ---
 
