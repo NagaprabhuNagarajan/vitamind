@@ -825,3 +825,24 @@ ALTER TABLE public.companion_memory ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users manage own companion_memory" ON public.companion_memory;
 CREATE POLICY "Users manage own companion_memory" ON public.companion_memory
   FOR ALL USING (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Phase M: Decision Engine + Life Simulation
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ── Decisions ─────────────────────────────────────────────────────────────────
+-- Stores user decisions and their AI analysis results.
+
+CREATE TABLE IF NOT EXISTS public.decisions (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  question    TEXT        NOT NULL,
+  options     JSONB       NOT NULL DEFAULT '[]',  -- array of option strings
+  analysis    JSONB,                              -- AI analysis result
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.decisions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own decisions" ON public.decisions;
+CREATE POLICY "Users manage own decisions" ON public.decisions
+  FOR ALL USING (auth.uid() = user_id);

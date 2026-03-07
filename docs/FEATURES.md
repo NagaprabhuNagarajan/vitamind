@@ -300,15 +300,19 @@ These features evolve VitaMind from a productivity tool into an **AI Life Intell
 - 24-hour cache with force-refresh option
 - Available on: Web (`/life-coach`) + Mobile (`LifeCoachScreen`)
 
-### 15. Decision Engine
-- AI-assisted decision making for personal and professional choices
-- Compare options, evaluate risk/benefit, align decisions with user goals
-- Example: "Should I change jobs?", "Should I start a business?"
+### 15. Decision Engine -- **Complete**
+- User poses a question + 2–5 options; AI evaluates each against active goals, momentum score, and behavioural patterns
+- Per-option analysis: pros, cons, goal-alignment % (with progress bar), risk level, effort required
+- Overall recommendation + key considerations + confidence level (high/medium/low)
+- Full decision history stored in `decisions` table; swipe-to-delete on mobile
+- Available on: Web (`/decisions`) + Mobile (`DecisionsScreen`)
 
-### 16. Life Simulation
-- Simulate future scenarios based on goals and current habits
-- Projects timelines for different strategies with outcome forecasting
-- Example: Save 30% income -> achieve financial independence in 6.2 years vs start side business -> 4.1 years
+### 16. Life Simulation -- **Complete**
+- User describes a scenario (e.g. "Exercise 5 days a week"); AI uses real baseline data (tasks, habits, momentum, health, finance) to simulate outcomes
+- Projects 4 milestones at 1, 3, 6, and 12 months with probability %, measurable metric, title, and description
+- Overall success probability (0–100%) with colour-coded bar; key risks + success enablers; first-step recommendation
+- 5 built-in example scenarios for quick start; stateless (no DB — generated fresh each time)
+- Available on: Web (`/life-simulation`) + Mobile (`LifeSimulationScreen`)
 
 ### 17. AI Personal Knowledge Graph
 - Graph of relationships between habits, goals, productivity, and outcomes

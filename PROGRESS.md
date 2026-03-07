@@ -1402,6 +1402,157 @@ Screen mirrors `AiScreen` architecture but with:
 
 ---
 
+## Phase 64 -- Phase M: Decision Engine
+
+### Goal
+Give users structured, AI-backed analysis for any personal or professional decision. Not a generic chatbot answer — a structured evaluation of each option against the user's **actual goals, momentum, and behavioural patterns**, saved to history for future reference.
+
+### Architecture
+
+**DB Table:** `decisions` (appended to `backend/supabase/schema.sql`)
+```sql
+CREATE TABLE public.decisions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  question TEXT NOT NULL,
+  options JSONB NOT NULL DEFAULT '[]',
+  analysis JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+RLS: users manage only their own rows.
+
+**Service:** `apps/web/src/features/decisions/services/decisions.service.ts`
+
+`DecisionEngineService.analyze(userId, question, options[])`:
+1. Fetches 3 data sources in parallel: active goals (title, progress, domain), current momentum score + burnout risk, top 3 Pattern Oracle insights
+2. Builds a prompt with all options and full user context injected
+3. AI evaluates each option and returns structured JSON:
+
+```ts
+{
+  recommendation: string
+  options_analysis: [{
+    option: string
+    pros: string[]
+    cons: string[]
+    goal_alignment: number    // 0-100
+    risk_level: 'low'|'medium'|'high'
+    effort_required: 'low'|'medium'|'high'
+  }]
+  key_considerations: string[]
+  confidence: 'high'|'medium'|'low'
+}
+```
+4. Inserts decision + analysis into `decisions` table and returns the full row
+
+`getHistory(userId, limit?)` — decisions ordered by `created_at DESC`
+
+`deleteDecision(userId, id)` — hard delete with user ownership check
+
+**API Routes:**
+- `GET /api/v1/decisions` — list history (`RateLimitTier.standard`)
+- `POST /api/v1/decisions` — analyse; validates 2–5 non-empty options, question 5–500 chars (`RateLimitTier.ai`)
+- `DELETE /api/v1/decisions/[id]` — delete (`RateLimitTier.standard`)
+
+### Web UI: `/decisions`
+
+**Files:** `apps/web/src/app/(dashboard)/decisions/page.tsx` + `decisions-view.tsx`
+
+- Form: question textarea + dynamic option inputs (2–5, add/remove) + Analyse button
+- Collapsible history cards: confidence badge (colour-coded), on expand shows recommendation box (indigo), option cards (risk badge, goal-alignment gradient bar, pros/cons), key considerations
+- Delete per card; error shown inline
+
+### Mobile: `DecisionsScreen`
+
+**Files:**
+- `apps/mobile/lib/features/decisions/data/decisions_service.dart` — `DecisionsService.getHistory()`, `analyze(question, options)`, `delete(id)`; models: `Decision`, `DecisionAnalysis`, `DecisionOption`
+- `apps/mobile/lib/features/decisions/presentation/screens/decisions_screen.dart` — same breakdown as web with `LinearProgressIndicator` for goal alignment
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `backend/supabase/schema.sql` | MODIFIED — `decisions` table + RLS |
+| `apps/web/src/features/decisions/services/decisions.service.ts` | NEW |
+| `apps/web/src/app/api/v1/decisions/route.ts` | NEW — GET + POST |
+| `apps/web/src/app/api/v1/decisions/[id]/route.ts` | NEW — DELETE |
+| `apps/web/src/app/(dashboard)/decisions/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/decisions/decisions-view.tsx` | NEW |
+| `apps/mobile/lib/features/decisions/data/decisions_service.dart` | NEW |
+| `apps/mobile/lib/features/decisions/presentation/screens/decisions_screen.dart` | NEW |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Decisions (`Scale` icon) |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — `Routes.decisions` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Decision Engine tile |
+
+---
+
+## Phase 65 -- Phase M: Life Simulation
+
+### Goal
+Let users simulate what their life would look like 12 months from now if they commit to a specific scenario. Unlike Decision Engine (which compares options), Life Simulation takes **one committed scenario** and projects its trajectory using real baseline data. Stateless — no DB write, generated fresh per request.
+
+### Architecture
+
+**Service:** `apps/web/src/features/life-simulation/services/life-simulation.service.ts`
+
+`LifeSimulationService.simulate(userId, scenario)`:
+1. Fetches 6 data sources in parallel: active goals, active habits, last-30-day tasks (for completion rate), momentum + burnout, health insights (avg sleep/mood), finance monthly summary
+2. Computes task completion rate inline
+3. Builds prompt with all baseline data, instructs AI to simulate 4 milestones (months 1, 3, 6, 12)
+4. Returns:
+
+```ts
+{
+  scenario: string
+  summary: string
+  outcome_at_12_months: string
+  probability_of_success: number     // 0-100
+  milestones: [{
+    month: 1 | 3 | 6 | 12
+    title: string
+    description: string
+    probability: number
+    metric?: string                  // e.g. "₹12,000 saved"
+  }]
+  key_risks: string[]
+  key_enablers: string[]
+  recommendation: string             // single most important first step
+}
+```
+
+**API:** `POST /api/v1/life-simulation` — validates scenario 5–500 chars, calls service, returns result. `RateLimitTier.ai`.
+
+### Web UI: `/life-simulation`
+
+**Files:** `apps/web/src/app/(dashboard)/life-simulation/page.tsx` + `life-simulation-view.tsx`
+
+- Textarea + 5 built-in example scenario chips (click auto-fills + triggers simulation)
+- Result: header card (success % with colour-coded animated bar, summary, 12-month outcome), vertical timeline with milestone dots (colour by probability), side-by-side risks + enablers cards, first-step recommendation card
+- Probability thresholds: green ≥70%, yellow ≥40%, red <40%
+
+### Mobile: `LifeSimulationScreen`
+
+**Files:**
+- `apps/mobile/lib/features/life_simulation/data/life_simulation_service.dart` — `LifeSimulationService.simulate(scenario)`; models: `SimulationResult`, `SimulationMilestone`
+- `apps/mobile/lib/features/life_simulation/presentation/screens/life_simulation_screen.dart` — same visual logic as web; timeline using `Column` + circle dot containers with vertical connector `Container` between items
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/features/life-simulation/services/life-simulation.service.ts` | NEW |
+| `apps/web/src/app/api/v1/life-simulation/route.ts` | NEW — POST |
+| `apps/web/src/app/(dashboard)/life-simulation/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/life-simulation/life-simulation-view.tsx` | NEW |
+| `apps/mobile/lib/features/life_simulation/data/life_simulation_service.dart` | NEW |
+| `apps/mobile/lib/features/life_simulation/presentation/screens/life_simulation_screen.dart` | NEW |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Life Sim (`FlaskConical` icon) |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — `Routes.lifeSimulation` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Life Simulation tile |
+
+---
+
 ## Backlog -- Pending Items
 
 ### Requires Manual Action
@@ -1424,12 +1575,10 @@ Screen mirrors `AiScreen` architecture but with:
 | 1 | Phase J | Razorpay integration (UPI, net banking, cards) | Not started |
 | 2 | Phase J | Pro tier feature gating | Not started |
 | 3 | Phase J | Team tier: shared accountability contracts | Not started |
-| 4 | Phase M | Decision Engine (AI-assisted decision making) | Not started |
-| 5 | Phase M | Life Simulation (future scenario modeling) | Not started |
+| ~~4~~ | ~~Phase M~~ | ~~Decision Engine (AI-assisted decision making)~~ | ~~Done (Phase 64)~~ |
+| ~~5~~ | ~~Phase M~~ | ~~Life Simulation (future scenario modeling)~~ | ~~Done (Phase 65)~~ |
 | 6 | Phase N | AI Personal Knowledge Graph | Not started |
 | 7 | Phase N | Life Auto Capture (calendar, email, health data ingestion) | Not started |
 | 8 | Phase O | Social Accountability Layer | Not started |
 | 9 | Phase O | Future Self (time capsule + AI predictions) | Not started |
 | 10 | -- | Apple Calendar sync | Not started |
-
----

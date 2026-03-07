@@ -255,6 +255,24 @@ class _MoreBottomSheet extends StatelessWidget {
                 },
               ),
               _MoreTile(
+                icon: Icons.balance_outlined,
+                label: 'Decision Engine',
+                subtitle: 'AI-powered decision analysis',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.decisions);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.science_outlined,
+                label: 'Life Simulation',
+                subtitle: 'Simulate your future scenarios',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.lifeSimulation);
+                },
+              ),
+              _MoreTile(
                 icon: Icons.calendar_today_outlined,
                 label: 'Planner',
                 subtitle: 'AI-generated daily plan',

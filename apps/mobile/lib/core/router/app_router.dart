@@ -28,6 +28,8 @@ import '../../features/timeline/presentation/screens/timeline_screen.dart';
 import '../../features/life_map/presentation/screens/life_map_screen.dart';
 import '../../features/life_coach/presentation/screens/life_coach_screen.dart';
 import '../../features/companion/presentation/screens/companion_screen.dart';
+import '../../features/decisions/presentation/screens/decisions_screen.dart';
+import '../../features/life_simulation/presentation/screens/life_simulation_screen.dart';
 
 class Routes {
   static const splash = '/';
@@ -58,6 +60,8 @@ class Routes {
   static const lifeMap = '/life-map';
   static const lifeCoach = '/life-coach';
   static const companion = '/companion';
+  static const decisions = '/decisions';
+  static const lifeSimulation = '/life-simulation';
 }
 
 class AppRouter {
@@ -118,6 +122,8 @@ class AppRouter {
       GoRoute(path: Routes.lifeMap, builder: (_, __) => const LifeMapScreen()),
       GoRoute(path: Routes.lifeCoach, builder: (_, __) => const LifeCoachScreen()),
       GoRoute(path: Routes.companion, builder: (_, __) => const CompanionScreen()),
+      GoRoute(path: Routes.decisions, builder: (_, __) => const DecisionsScreen()),
+      GoRoute(path: Routes.lifeSimulation, builder: (_, __) => const LifeSimulationScreen()),
     ],
   );
 }

@@ -185,10 +185,12 @@ These features evolve VitaMind from a productivity tool into an AI Life Intellig
 
 **Migrations**: `companion_memory` table added to `backend/supabase/schema.sql`
 
-### Phase M -- Decision Engine + Life Simulation
+### Phase M -- Decision Engine + Life Simulation -- **Complete**
 
-- **Decision Engine**: AI-assisted decision making. Compare options, evaluate risk/benefit, align decisions with user goals. (e.g., "Should I change jobs?")
-- **Life Simulation**: Simulate future scenarios based on goals and current habits. Projects timelines for different strategies with outcome forecasting.
+- **Decision Engine**: AI-assisted decision analysis. User poses a question + 2–5 options. AI evaluates each against active goals, momentum, and behavioural patterns. Returns recommendation, per-option pros/cons/risk/effort/goal-alignment %, key considerations, and confidence level. History stored in `decisions` table. API: `GET/POST /api/v1/decisions`, `DELETE /api/v1/decisions/[id]`. Web: `/decisions`. Mobile: `DecisionsScreen`.
+- **Life Simulation**: Simulate what life looks like if a scenario is followed for 12 months. Uses current baseline (tasks, habits, momentum, health, finance) to project 4 milestones (1/3/6/12 months) with probability %, measurable metric, key risks, and success enablers. Stateless (no DB). API: `POST /api/v1/life-simulation`. Web: `/life-simulation`. Mobile: `LifeSimulationScreen`.
+
+**Migrations**: `decisions` table added to `backend/supabase/schema.sql`
 
 ### Phase N -- Knowledge Graph + Auto Capture
 
