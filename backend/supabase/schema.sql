@@ -733,3 +733,73 @@ DROP TRIGGER IF EXISTS trg_life_event_goal_achieved ON public.goals;
 CREATE TRIGGER trg_life_event_goal_achieved
   AFTER UPDATE ON public.goals
   FOR EACH ROW EXECUTE FUNCTION create_life_event_on_goal_achieved();
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Phase I: Life Ecosystem
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ── Financial Entries ─────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.financial_entries (
+  id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  type         TEXT        NOT NULL CHECK (type IN ('income', 'expense')),
+  amount       NUMERIC(12,2) NOT NULL CHECK (amount > 0),
+  currency     TEXT        NOT NULL DEFAULT 'INR',
+  category     TEXT        NOT NULL,
+  description  TEXT,
+  date         DATE        NOT NULL DEFAULT CURRENT_DATE,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.financial_entries ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own financial_entries" ON public.financial_entries;
+CREATE POLICY "Users manage own financial_entries" ON public.financial_entries
+  FOR ALL USING (auth.uid() = user_id);
+
+-- ── Health Entries ────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.health_entries (
+  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  date             DATE        NOT NULL DEFAULT CURRENT_DATE,
+  sleep_hours      NUMERIC(4,1),
+  steps            INTEGER,
+  water_ml         INTEGER,
+  weight_kg        NUMERIC(5,1),
+  exercise_minutes INTEGER,
+  mood             SMALLINT    CHECK (mood BETWEEN 1 AND 5),
+  notes            TEXT,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, date)
+);
+
+ALTER TABLE public.health_entries ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own health_entries" ON public.health_entries;
+CREATE POLICY "Users manage own health_entries" ON public.health_entries
+  FOR ALL USING (auth.uid() = user_id);
+
+-- ── Automation Rules ──────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.automation_rules (
+  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  name             TEXT        NOT NULL,
+  trigger_type     TEXT        NOT NULL CHECK (trigger_type IN (
+                     'habit_streak_broken', 'task_overdue',
+                     'goal_deadline_approaching', 'momentum_low', 'burnout_high'
+                   )),
+  trigger_config   JSONB       NOT NULL DEFAULT '{}',
+  action_type      TEXT        NOT NULL CHECK (action_type IN (
+                     'create_task', 'send_notification', 'webhook'
+                   )),
+  action_config    JSONB       NOT NULL DEFAULT '{}',
+  is_active        BOOLEAN     NOT NULL DEFAULT TRUE,
+  last_triggered_at TIMESTAMPTZ,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.automation_rules ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own automation_rules" ON public.automation_rules;
+CREATE POLICY "Users manage own automation_rules" ON public.automation_rules
+  FOR ALL USING (auth.uid() = user_id);

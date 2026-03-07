@@ -6,7 +6,7 @@
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 193   | 193       | 0           | 0       |
+| 221   | 221       | 0           | 0       |
 
 ---
 
@@ -1119,9 +1119,9 @@
 | ~~1~~ | ~~Phase H~~ | ~~Calendar-aware AI daily planning (AI sees meetings)~~ | ~~Done (Phase 55)~~ |
 | ~~2~~ | ~~Phase H~~ | ~~Smart scheduling (optimal times from Time Fingerprint + calendar)~~ | ~~Done (Phase 56)~~ |
 | ~~3~~ | ~~Phase H~~ | ~~AI productivity coaching conversations~~ | ~~Done (Phase 57)~~ |
-| 4 | Phase I | Financial insights integration | Not started |
-| 5 | Phase I | Health data connections (Apple Health, Google Fit) | Not started |
-| 6 | Phase I | Automation workflows (IFTTT/Zapier-style triggers) | Not started |
+| ~~4~~ | ~~Phase I~~ | ~~Financial insights integration~~ | ~~Done (Phase 58)~~ |
+| ~~5~~ | ~~Phase I~~ | ~~Health data connections (Apple Health, Google Fit)~~ | ~~Done (Phase 59)~~ |
+| ~~6~~ | ~~Phase I~~ | ~~Automation workflows (IFTTT/Zapier-style triggers)~~ | ~~Done (Phase 60)~~ |
 | 7 | Phase J | Razorpay integration (UPI, net banking, cards) | Not started |
 | 8 | Phase J | Pro tier feature gating | Not started |
 | 9 | Phase J | Team tier: shared accountability contracts | Not started |
@@ -1134,3 +1134,58 @@
 | 16 | Phase O | Social Accountability Layer | Not started |
 | 17 | Phase O | Future Self (time capsule + AI predictions) | Not started |
 | 18 | -- | Apple Calendar sync | Not started |
+
+---
+
+## Phase 58 -- Phase I: Financial Tracking
+
+| Task | Status |
+|------|--------|
+| `financial_entries` DB table + RLS | Done |
+| `FinanceService` (getEntries, addEntry, deleteEntry, getMonthlySummary) | Done |
+| `GET /api/v1/finance` — list entries + monthly summary + categories | Done |
+| `POST /api/v1/finance` — add income/expense entry | Done |
+| `DELETE /api/v1/finance/[id]` — delete entry | Done |
+| Web: `/finance` page with income/expense list, monthly summary cards, category breakdown bar chart | Done |
+| Mobile: `FinanceScreen` with summary cards, category breakdown, swipe-to-delete entries | Done |
+
+---
+
+## Phase 59 -- Phase I: Health Tracking
+
+| Task | Status |
+|------|--------|
+| `health_entries` DB table + RLS (unique per user+date) | Done |
+| `HealthService` (getEntries, upsertEntry, getInsights with trends + streak) | Done |
+| `GET /api/v1/health` — entries + insights (avg sleep/steps/mood/exercise, trends, streak) | Done |
+| `POST /api/v1/health` — upsert daily health entry | Done |
+| Web: `/health` page with insight cards, tracking streak, full entry log | Done |
+| Mobile: `HealthScreen` with grid insights, streak, mood selector, stat chips | Done |
+
+---
+
+## Phase 60 -- Phase I: Automation Rules
+
+| Task | Status |
+|------|--------|
+| `automation_rules` DB table + RLS | Done |
+| `AutomationsService` (getRules, createRule, updateRule, deleteRule, evaluateRules) | Done |
+| Rule evaluation engine: task_overdue, momentum_low, burnout_high, habit_streak_broken, goal_deadline_approaching | Done |
+| Actions: create_task, send_notification, webhook | Done |
+| `GET /api/v1/automations` — list rules + labels | Done |
+| `POST /api/v1/automations` — create rule | Done |
+| `PUT /api/v1/automations/[id]` — update rule (toggle active, config) | Done |
+| `DELETE /api/v1/automations/[id]` — delete rule | Done |
+| Web: `/automations` page with toggle switch, create modal, rule cards | Done |
+| Mobile: `AutomationsScreen` with swipe-to-delete, toggle switch, create sheet | Done |
+
+---
+
+## Phase 61 -- Phase I: Cross-Domain AI Insights
+
+| Task | Status |
+|------|--------|
+| `GET /api/v1/cross-domain` — AI analysis correlating finance + health + productivity | Done |
+| Prompt: finds correlations across domains, identifies highest-leverage action | Done |
+| 6-hour cache via ai_insights table | Done |
+| Returns: insights array, top_leverage message, finance_summary, health_insights | Done |
