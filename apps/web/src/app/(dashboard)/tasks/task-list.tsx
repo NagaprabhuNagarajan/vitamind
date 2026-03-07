@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { cn, PRIORITY_COLOR, PRIORITY_LABEL, formatDate, isOverdue } from '@/lib/utils'
+import { cn, PRIORITY_COLOR, PRIORITY_LABEL, formatDate, formatTime, isOverdue } from '@/lib/utils'
 import {
   Circle, CheckCircle2, MoreHorizontal,
   Play, CheckCheck, RotateCcw, Trash2, Search, Repeat, Sparkles, Clock,
@@ -404,7 +404,7 @@ export function TaskList({ initialTasks, goals }: TaskListProps) {
                       )}
                       {task.due_date && (
                         <span className={cn('text-xs', overdue ? 'text-red-500' : 'text-text-tertiary')}>
-                          {overdue ? '⚠ Overdue · ' : ''}{formatDate(task.due_date)}
+                          {overdue ? '⚠ Overdue · ' : ''}{formatDate(task.due_date)}{task.due_time ? ` · ${formatTime(task.due_time)}` : ''}
                         </span>
                       )}
                       {goal && <span className="text-xs text-text-tertiary">· {goal.title}</span>}

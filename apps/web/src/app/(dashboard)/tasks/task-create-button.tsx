@@ -30,10 +30,12 @@ export function TaskCreateButton({ goals }: TaskCreateButtonProps) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const dueDate = formData.get('due_date') as string | null
+    const dueTime = formData.get('due_time') as string | null
     const body: Record<string, unknown> = {
       title: formData.get('title'),
       priority: formData.get('priority'),
       due_date: dueDate || null,
+      due_time: dueTime || null,
       goal_id: formData.get('goal_id') || null,
     }
 
@@ -108,6 +110,11 @@ export function TaskCreateButton({ goals }: TaskCreateButtonProps) {
               <label htmlFor="task-due-date" className="text-sm font-medium text-text-primary">Due date</label>
               <input id="task-due-date" name="due_date" type="date" className="input" />
             </div>
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="task-due-time" className="text-sm font-medium text-text-primary">Time <span className="text-text-tertiary font-normal">(optional)</span></label>
+            <input id="task-due-time" name="due_time" type="time" className="input" />
           </div>
 
           {goals.length > 0 && (

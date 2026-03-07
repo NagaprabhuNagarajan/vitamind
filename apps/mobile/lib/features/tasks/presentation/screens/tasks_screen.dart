@@ -10,6 +10,16 @@ import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../data/task_service.dart';
 import '../bloc/tasks_bloc.dart';
 
+// Formats "HH:MM" (24-hour) to "h:MM AM/PM"
+String _formatTaskTime(String hhmm) {
+  final parts = hhmm.split(':');
+  final h = int.parse(parts[0]);
+  final m = parts[1];
+  final period = h >= 12 ? 'PM' : 'AM';
+  final hour = h % 12 == 0 ? 12 : h % 12;
+  return '$hour:$m $period';
+}
+
 class TasksScreen extends StatelessWidget {
   const TasksScreen({super.key});
 
@@ -353,7 +363,9 @@ class _TaskTile extends StatelessWidget {
                           size: 11, color: AppColors.textTertiary),
                       const SizedBox(width: 4),
                       Text(
-                        'Due ${task.dueDate}',
+                        task.dueTime != null
+                            ? 'Due ${task.dueDate} · ${_formatTaskTime(task.dueTime!)}'
+                            : 'Due ${task.dueDate}',
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.textTertiary),
                       ),
@@ -691,6 +703,7 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
   final _descCtrl = TextEditingController();
   TaskPriority _priority = TaskPriority.medium;
   String? _dueDate;
+  String? _dueTime; // HH:MM
   bool _isRecurring = false;
   RecurrencePattern _recurrencePattern = RecurrencePattern.weekly;
   String? _recurrenceEndDate;
@@ -711,6 +724,7 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
               : _descCtrl.text.trim(),
           priority: _priority,
           dueDate: _dueDate,
+          dueTime: _dueTime,
           isRecurring: _isRecurring,
           recurrencePattern: _isRecurring ? _recurrencePattern : null,
           recurrenceEndDate: _isRecurring ? _recurrenceEndDate : null,
@@ -780,30 +794,60 @@ class _CreateTaskSheetState extends State<_CreateTaskSheet> {
               onChanged: (v) => setState(() => _priority = v!),
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate:
-                      DateTime.now().add(const Duration(days: 365)),
-                );
-                if (picked != null) {
-                  setState(() => _dueDate =
-                      '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
-                }
-              },
-              icon: const Icon(Icons.calendar_today_outlined,
-                  size: 16, color: AppColors.textSecondary),
-              label: Text(
-                _dueDate ?? 'Set due date',
-                style: TextStyle(
-                  color: _dueDate != null
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setState(() => _dueDate =
+                            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}');
+                      }
+                    },
+                    icon: const Icon(Icons.calendar_today_outlined,
+                        size: 16, color: AppColors.textSecondary),
+                    label: Text(
+                      _dueDate ?? 'Date',
+                      style: TextStyle(
+                        color: _dueDate != null
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (picked != null) {
+                        setState(() => _dueTime =
+                            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}');
+                      }
+                    },
+                    icon: const Icon(Icons.access_time_outlined,
+                        size: 16, color: AppColors.textSecondary),
+                    label: Text(
+                      _dueTime != null ? _formatTaskTime(_dueTime!) : 'Time',
+                      style: TextStyle(
+                        color: _dueTime != null
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             // Recurring toggle

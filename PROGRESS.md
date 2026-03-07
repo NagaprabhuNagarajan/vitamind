@@ -6,7 +6,7 @@
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 157   | 157       | 0           | 0       |
+| 172   | 172       | 0           | 0       |
 
 ---
 
@@ -1017,6 +1017,43 @@
 - [x] Fixed `apps/mobile/lib/main.dart` -- moved `dotenv.load()` before all service initializations (was causing NotInitializedError when Sentry/PostHog tried to read env vars)
 
 **Files modified:** 1 file
+
+---
+
+## Phase 52 -- Mobile Calendar Sync/Import Fix
+
+- [x] Fixed `apps/mobile/.env` -- `API_BASE_URL` changed from `http://localhost:3003` to `https://vitamind-woad.vercel.app` (mobile was hitting localhost, unreachable on device)
+- [x] Fixed `apps/web/src/lib/api/auth-guard.ts` -- `requireAuth()` now checks `Authorization: Bearer` header first, falls back to cookie session; all 37 API routes now work from mobile app without any other changes
+
+**Files modified:** 2 files
+
+---
+
+## Phase 53 -- Settings Sign-Out Dialog
+
+- [x] Updated `apps/mobile/lib/features/settings/presentation/screens/settings_screen.dart` -- added `_showLogoutDialog()` with the same confirmation dialog as dashboard (red logout icon, Cancel + Sign out buttons), wired up Sign out tile to call it instead of firing logout directly
+
+**Files modified:** 1 file
+
+---
+
+## Phase 54 -- Task Due Time (Google Calendar-style)
+
+- [x] Created `backend/supabase/migrations/016_task_due_time.sql` -- adds `due_time TIME` nullable column to tasks table (backward compatible); composite index on `(user_id, due_date, due_time)`
+- [x] Updated `apps/web/src/lib/types/index.ts` -- added `due_time: string | null` to `Task` interface
+- [x] Updated `apps/web/src/features/tasks/types.ts` -- added `due_time` to `CreateTaskInput` and `UpdateTaskInput`
+- [x] Updated `apps/web/src/lib/utils/index.ts` -- added `formatTime()` helper (HH:MM 24hr → "2:30 PM")
+- [x] Updated `apps/web/src/app/api/v1/tasks/route.ts` -- validates and stores `due_time` on create
+- [x] Updated `apps/web/src/app/api/v1/tasks/[id]/route.ts` -- validates and stores `due_time` on update
+- [x] Updated `apps/web/src/app/(dashboard)/tasks/task-create-button.tsx` -- added `<input type="time">` field below date picker
+- [x] Updated `apps/web/src/app/(dashboard)/tasks/task-list.tsx` -- shows time alongside date (e.g. "Mar 10, 2026 · 2:30 PM")
+- [x] Updated `apps/mobile/lib/features/tasks/data/task_service.dart` -- `dueTime` field on `Task` model, `fromMap`, `copyWith`, `toMap`, `create()`
+- [x] Updated `apps/mobile/lib/features/tasks/presentation/bloc/tasks_bloc.dart` -- `dueTime` in `TaskCreateRequested` event and `_onCreate` handler
+- [x] Updated `apps/mobile/lib/features/tasks/presentation/screens/tasks_screen.dart` -- side-by-side Date/Time pickers using `showTimePicker()`, time shown in task cards, `_formatTaskTime()` top-level helper
+
+**Files created/modified:** 11 files
+
+**Requires manual action:** Apply migration `016_task_due_time.sql` in Supabase dashboard SQL editor.
 
 ---
 

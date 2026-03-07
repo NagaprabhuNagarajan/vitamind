@@ -19,6 +19,7 @@ class TaskCreateRequested extends TasksEvent {
   final String? description;
   final TaskPriority priority;
   final String? dueDate;
+  final String? dueTime;
   final bool isRecurring;
   final RecurrencePattern? recurrencePattern;
   final String? recurrenceEndDate;
@@ -27,12 +28,13 @@ class TaskCreateRequested extends TasksEvent {
     this.description,
     required this.priority,
     this.dueDate,
+    this.dueTime,
     this.isRecurring = false,
     this.recurrencePattern,
     this.recurrenceEndDate,
   });
   @override
-  List<Object?> get props => [title, priority, dueDate, isRecurring, recurrencePattern, recurrenceEndDate];
+  List<Object?> get props => [title, priority, dueDate, dueTime, isRecurring, recurrencePattern, recurrenceEndDate];
 }
 
 class TaskStatusUpdateRequested extends TasksEvent {
@@ -183,6 +185,7 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
         description: event.description,
         priority: event.priority,
         dueDate: event.dueDate,
+        dueTime: event.dueTime,
         isRecurring: event.isRecurring,
         recurrencePattern: event.recurrencePattern,
         recurrenceEndDate: event.recurrenceEndDate,

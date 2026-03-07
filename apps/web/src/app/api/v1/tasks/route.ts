@@ -5,7 +5,7 @@ import { withRateLimit, RateLimitTier } from '@/lib/api/rate-limit'
 import { withCors, OPTIONS } from '@/lib/api/cors'
 import { withLogging } from '@/lib/api/logger'
 import {
-  validateString, validateEnum, validateDate, validateUUID,
+  validateString, validateEnum, validateDate, validateTime, validateUUID,
   TASK_STATUSES, TASK_PRIORITIES,
 } from '@/lib/api/validation'
 import { TaskService } from '@/features/tasks/services/task.service'
@@ -43,6 +43,7 @@ export const POST = withLogging(withCors(withRateLimit(async (request: Request) 
       priority: validateEnum(body.priority, 'priority', TASK_PRIORITIES),
       status: validateEnum(body.status, 'status', TASK_STATUSES),
       due_date: validateDate(body.due_date, 'due_date'),
+      due_time: validateTime(body.due_time, 'due_time'),
       goal_id: validateUUID(body.goal_id, 'goal_id'),
     }
 

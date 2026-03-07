@@ -157,6 +157,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _showLogoutDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+                ),
+                child: const Icon(Icons.logout_outlined,
+                    color: AppColors.error, size: 28),
+              ),
+              const SizedBox(height: 16),
+              Text('Sign out?',
+                  style: Theme.of(ctx).textTheme.titleMedium,
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              Text(
+                "You'll need to sign in again to access your account.",
+                style: Theme.of(ctx).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                      ),
+                      child: const Text('Sign out'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (confirmed == true && mounted) {
+      context.read<AuthBloc>().add(AuthLogoutRequested());
+    }
+  }
+
   void _confirmDeleteAccount() {
     showModalBottomSheet(
       context: context,
@@ -292,10 +355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.logout_rounded,
                   title: 'Sign out',
                   subtitle: 'Sign out of your account',
-                  onTap: () {
-                    context.read<AuthBloc>().add(AuthLogoutRequested());
-                    context.go(Routes.login);
-                  },
+                  onTap: _showLogoutDialog,
                 ),
               ],
             ),

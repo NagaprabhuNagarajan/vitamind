@@ -6,6 +6,7 @@ export interface CreateTaskInput {
   description?: string
   priority: import('@/lib/types').Priority
   due_date?: string
+  due_time?: string | null  // HH:MM (24-hour)
   goal_id?: string
   is_recurring?: boolean
   recurrence_pattern?: import('@/lib/types').RecurrencePattern
@@ -19,6 +20,7 @@ export interface UpdateTaskInput {
   priority?: import('@/lib/types').Priority
   status?: import('@/lib/types').TaskStatus
   due_date?: string | null
+  due_time?: string | null  // HH:MM (24-hour)
   goal_id?: string | null
 }
 

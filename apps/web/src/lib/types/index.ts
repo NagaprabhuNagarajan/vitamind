@@ -35,6 +35,7 @@ export interface Task {
   priority: Priority
   status: TaskStatus
   due_date: string | null
+  due_time: string | null  // HH:MM (24-hour)
   completed_at: string | null
   is_recurring?: boolean
   recurrence_pattern?: RecurrencePattern

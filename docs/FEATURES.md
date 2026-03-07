@@ -1,6 +1,6 @@
 # VitaMind -- Complete Feature List
 
-> Last updated: 2026-03-06 (Sprint 3-4 updates)
+> Last updated: 2026-03-07 (Sprint 3-4 updates + task due time, mobile calendar fix)
 > "The AI Operating System for Your Life"
 
 ---
@@ -18,7 +18,8 @@
 - Available on: Web + Mobile
 
 ### Task Management
-- Create, edit, delete tasks with title, description, priority, due date
+- Create, edit, delete tasks with title, description, priority, due date, due time
+- Due time field (HH:MM, optional) — shown alongside date like Google Calendar
 - Status workflow: todo -> in_progress -> completed / cancelled
 - Priority levels: low, medium, high, urgent
 - Filter by status and priority

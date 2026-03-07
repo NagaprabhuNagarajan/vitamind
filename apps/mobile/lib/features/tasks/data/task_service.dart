@@ -13,6 +13,7 @@ class Task {
   final TaskPriority priority;
   final TaskStatus status;
   final String? dueDate;
+  final String? dueTime; // HH:MM (24-hour)
   final String? goalId;
   final bool isRecurring;
   final RecurrencePattern? recurrencePattern;
@@ -28,6 +29,7 @@ class Task {
     required this.priority,
     required this.status,
     this.dueDate,
+    this.dueTime,
     this.goalId,
     this.isRecurring = false,
     this.recurrencePattern,
@@ -45,6 +47,7 @@ class Task {
       priority: _parsePriority(m['priority'] as String? ?? 'medium'),
       status: _parseStatus(m['status'] as String? ?? 'todo'),
       dueDate: m['due_date'] as String?,
+      dueTime: m['due_time'] as String?,
       goalId: m['goal_id'] as String?,
       isRecurring: m['is_recurring'] as bool? ?? false,
       recurrencePattern: _parseRecurrencePattern(m['recurrence_pattern'] as String?),
@@ -62,6 +65,7 @@ class Task {
         priority: priority,
         status: status ?? this.status,
         dueDate: dueDate,
+        dueTime: dueTime,
         goalId: goalId,
         isRecurring: isRecurring,
         recurrencePattern: recurrencePattern,
@@ -78,6 +82,7 @@ class Task {
         'priority': priority.name,
         'status': _statusToDb(status),
         'due_date': dueDate,
+        'due_time': dueTime,
         'goal_id': goalId,
         'is_recurring': isRecurring,
         'recurrence_pattern': recurrencePattern?.name,
@@ -260,6 +265,7 @@ class TaskService {
     String? description,
     TaskPriority priority = TaskPriority.medium,
     String? dueDate,
+    String? dueTime,
     String? goalId,
     bool isRecurring = false,
     RecurrencePattern? recurrencePattern,
@@ -272,6 +278,7 @@ class TaskService {
       'priority': priority.name,
       'status': Task._statusToDb(TaskStatus.pending),
       if (dueDate != null) 'due_date': dueDate,
+      if (dueTime != null) 'due_time': dueTime,
       if (goalId != null) 'goal_id': goalId,
       'is_recurring': isRecurring,
       if (isRecurring && recurrencePattern != null)
