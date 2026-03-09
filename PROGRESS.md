@@ -6,7 +6,7 @@
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 242   | 242       | 0           | 0       |
+| 256   | 256       | 0           | 0       |
 
 ---
 
@@ -1793,6 +1793,133 @@ Time-capsule messaging: write a personal message to be sealed until a chosen dat
 | `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Future Self (`Hourglass` icon) |
 | `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — `Routes.futureSelf` + GoRoute |
 | `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Future Self tile |
+
+---
+
+## Phase 70 -- Phase P: Life Trajectory Engine
+
+### Goal
+Compute directional velocity per life domain by running the same Life Map scoring formula over two 14-day windows (recent vs prior) and exposing the delta. Pure intelligence — no new data collection.
+
+### Architecture
+
+**Service:** `apps/web/src/features/trajectory/services/trajectory.service.ts`
+
+`generateTrajectoryReport(userId, force?)`:
+1. Checks `ai_insights` cache (`type = 'trajectory'`, 24h TTL)
+2. Fetches goals, task stats (within date window), habit rate — for BOTH recent (0–14d) and prior (15–28d) windows in parallel
+3. Applies Life Map formula per domain per window: `goalProgress * 0.5 + taskRate * 0.3 + habitRate * 0.2`
+4. Delta = recentScore - priorScore; trend = up/down/stable (±3pt threshold)
+5. Highest Impact Action: domain with lowest score + declining/stable trend → template-based recommendation
+6. Caches and returns `TrajectoryReport`
+
+**Response type:**
+```ts
+interface DomainVelocity { domain, score, delta, trend }
+interface TrajectoryReport {
+  domains: DomainVelocity[]
+  overallTrend: 'up' | 'down' | 'stable'
+  highestImpactAction: { action, domain, projectedImpact }
+  generatedAt: string
+}
+```
+
+**API:** `GET /api/v1/trajectory` — `RateLimitTier.dashboard`, `?force=true` bypasses cache
+
+### Web UI: `/trajectory`
+
+**Files:** `apps/web/src/app/(dashboard)/trajectory/page.tsx` + `trajectory-view.tsx`
+
+- Overall trend badge (colored icon + label)
+- HIA callout card (domain-colored gradient border)
+- 2-col domain grid: each card shows domain icon, score %, progress bar, delta (▲/▼ with color + points)
+- Refresh button; loading/error states
+
+### Mobile: `TrajectoryScreen`
+
+**Files:**
+- `apps/mobile/lib/features/trajectory/data/trajectory_service.dart` — models + Dio service
+- `apps/mobile/lib/features/trajectory/presentation/screens/trajectory_screen.dart` — HIA card, 2-col domain GridView with colored delta arrows and progress bars
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/lib/types/index.ts` | MODIFIED — added `'trajectory' \| 'life_report'` to InsightType |
+| `apps/web/src/features/ai/services/cache.ts` | MODIFIED — added trajectory + life_report TTL entries |
+| `apps/web/src/features/trajectory/services/trajectory.service.ts` | NEW |
+| `apps/web/src/app/api/v1/trajectory/route.ts` | NEW — GET |
+| `apps/web/src/app/(dashboard)/trajectory/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/trajectory/trajectory-view.tsx` | NEW |
+| `apps/mobile/lib/features/trajectory/data/trajectory_service.dart` | NEW |
+| `apps/mobile/lib/features/trajectory/presentation/screens/trajectory_screen.dart` | NEW |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Trajectory + Life Report nav items |
+| `apps/web/src/lib/supabase/middleware.ts` | MODIFIED — added `/trajectory` + `/life-report` to isProtectedRoute |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — added Routes.trajectory + Routes.lifeReport + GoRoutes |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Trajectory + Life Report tiles in More sheet |
+
+---
+
+## Phase 71 -- Phase P: Daily Life Intelligence Report + Highest Impact Action
+
+### Goal
+Unified AI morning briefing combining: health summary, momentum + 7-day trend sparkline, burnout risk, top Pattern Oracle insight, Highest Impact Action, and AI-generated warm greeting. Cached once per day. HIA is computed by the Trajectory Engine (no separate AI call).
+
+### Architecture
+
+**Service:** `apps/web/src/features/ai/services/life-report.service.ts`
+
+`LifeReportService.generateReport(userId, force?)`:
+1. Checks `ai_insights` cache (`type = 'life_report'`, 24h TTL)
+2. Parallel fetch: user name, latest health entry, last 7 momentum snapshots, PatternOracle top insight, TrajectoryReport (includes HIA)
+3. Computes burnout risk from momentum trend (3+ declining days = high, avg change < -2 = medium, else low)
+4. AI call for greeting only: name + momentum + trend direction + top insight → 2-sentence warm morning greeting (`maxTokens: 100, temperature: 0.6`)
+5. Returns `LifeReport` combining computed data + AI greeting; saves to cache
+
+**Response type:**
+```ts
+interface LifeReport {
+  greeting: string          // AI-generated personalised 2-sentence morning greeting
+  momentumScore: number
+  momentumTrend: number[]   // last 7 days (oldest first) for sparkline
+  burnoutRisk: 'low' | 'medium' | 'high'
+  topInsight: string
+  highestImpactAction: { action, domain, projectedImpact }
+  domains: DomainVelocity[]
+  healthSummary: string | null
+  generatedAt: string
+}
+```
+
+**API:** `GET /api/v1/ai/life-report` — `RateLimitTier.ai`, `?force=true` bypasses cache
+
+### Web UI: `/life-report`
+
+**Files:** `apps/web/src/app/(dashboard)/life-report/page.tsx` + `life-report-view.tsx`
+
+- Gradient greeting card with health summary below
+- 2-col stats: momentum score (indigo, with SVG sparkline) + burnout risk chip (colour-coded)
+- Top Pattern card
+- HIA callout card (domain-colored, most prominent)
+- 3-col domain mini-grid (icon + score + trend arrow)
+- Regenerate button; loading/error states
+
+### Mobile: `LifeReportScreen`
+
+**Files:**
+- `apps/mobile/lib/features/life_report/data/life_report_service.dart` — models + Dio service
+- `apps/mobile/lib/features/life_report/presentation/screens/life_report_screen.dart` — greeting card, momentum + burnout row (with `CustomPaint` sparkline), top pattern, HIA card, domain 3-col grid
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/features/ai/services/life-report.service.ts` | NEW |
+| `apps/web/src/app/api/v1/ai/life-report/route.ts` | NEW — GET |
+| `apps/web/src/app/(dashboard)/life-report/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/life-report/life-report-view.tsx` | NEW |
+| `apps/mobile/lib/features/life_report/data/life_report_service.dart` | NEW |
+| `apps/mobile/lib/features/life_report/presentation/screens/life_report_screen.dart` | NEW |
 
 ---
 

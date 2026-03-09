@@ -34,6 +34,8 @@ import '../../features/knowledge_graph/presentation/screens/knowledge_graph_scre
 import '../../features/auto_capture/presentation/screens/auto_capture_screen.dart';
 import '../../features/social/presentation/screens/social_screen.dart';
 import '../../features/future_self/presentation/screens/future_self_screen.dart';
+import '../../features/trajectory/presentation/screens/trajectory_screen.dart';
+import '../../features/life_report/presentation/screens/life_report_screen.dart';
 
 class Routes {
   static const splash = '/';
@@ -70,6 +72,8 @@ class Routes {
   static const autoCapture = '/auto-capture';
   static const social = '/social';
   static const futureSelf = '/future-self';
+  static const trajectory = '/trajectory';
+  static const lifeReport = '/life-report';
 }
 
 class AppRouter {
@@ -136,6 +140,8 @@ class AppRouter {
       GoRoute(path: Routes.autoCapture, builder: (_, __) => const AutoCaptureScreen()),
       GoRoute(path: Routes.social, builder: (_, __) => const SocialScreen()),
       GoRoute(path: Routes.futureSelf, builder: (_, __) => const FutureSelfScreen()),
+      GoRoute(path: Routes.trajectory, builder: (_, __) => const TrajectoryScreen()),
+      GoRoute(path: Routes.lifeReport, builder: (_, __) => const LifeReportScreen()),
     ],
   );
 }

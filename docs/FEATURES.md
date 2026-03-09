@@ -256,6 +256,43 @@ Available on: Web + Mobile
 
 ---
 
+## Phase P Features (Planned — AI Life GPS)
+
+### Life Trajectory Engine
+Directional velocity scores per life domain computed from 14-day behavioral deltas:
+- Domains: Health, Career, Relationships, Finance, Learning, Personal Growth
+- Score = weighted delta of goal progress (50%) + habit consistency (30%) + task completion rate (20%) — recent 14 days vs prior 14 days
+- Positive = improving, negative = declining, near-zero = stable
+- Adds trend arrows (↑↓→) to the existing Life Map radar chart
+- Stored in `trajectory_snapshots` table, computed daily via cron
+- API: `GET /api/v1/trajectory`
+
+Available on: Web + Mobile (planned)
+
+### Daily Life Intelligence Report
+AI-generated personalized morning briefing, cached once per day:
+- Health summary (last logged sleep/mood/exercise entry)
+- Momentum score + 7-day trend chart
+- Burnout risk level with one-line interpretation
+- Top behavioral pattern insight from Pattern Oracle ("You complete 38% more tasks on meditation days")
+- Highest Impact Action for today
+- Warm narrative framing ("Good morning. Yesterday was strong. Here's your focus today.")
+- API: `GET /api/v1/ai/life-report`
+
+Available on: Web + Mobile (planned)
+
+### Highest Impact Action
+Single daily AI recommendation with cross-domain impact projection:
+- AI selects the one action that most improves the user's weakest trajectory domain
+- Projects cross-domain impact: "+X% health, +Y% productivity, +Z% momentum"
+- Derived from Pattern Oracle correlations + current trajectory velocity
+- Refreshes daily, embedded in morning report and shown on dashboard
+- Included in `/api/v1/ai/life-report` response payload
+
+Available on: Web + Mobile (planned)
+
+---
+
 ## Infrastructure Features
 
 ### Google Calendar Integration

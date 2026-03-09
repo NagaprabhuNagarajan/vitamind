@@ -207,3 +207,20 @@ These features evolve VitaMind from a productivity tool into an AI Life Intellig
 **Migrations**: `social_connections`, `future_messages` tables added to `backend/supabase/schema.sql`
 
 **Key files**: `features/social/services/social.service.ts`, `features/future-self/services/future-self.service.ts`, `app/api/v1/social/`, `app/api/v1/future-self/`
+
+### Phase P — AI Life GPS: Life Trajectory Engine + Daily Life Intelligence Report + Highest Impact Action
+
+**Why next:** Synthesises all existing data (momentum, burnout, patterns, health, goals, habits, time fingerprint) into a unified navigation experience. No new data collection needed — pure intelligence layer on top of what already exists. Transforms VitaMind from a tracker into a navigator.
+
+**Features:**
+- **Life Trajectory Engine**: Per-domain directional velocity computed from 14-day behavioral deltas (recent 14d vs prior 14d). Domains: health, career, relationships, finance, learning, personal. Score = weighted delta of goal progress + habit consistency + task completion. Stored in `trajectory_snapshots` table. Adds trend arrows to existing Life Map radar. API: `GET /api/v1/trajectory`. Web: `/trajectory`. Mobile: `TrajectoryScreen`.
+- **Daily Life Intelligence Report**: AI morning briefing cached once per day per user. Aggregates: health summary, momentum + 7-day trend, burnout risk level, top Pattern Oracle insight, Highest Impact Action, warm narrative framing. API: `GET /api/v1/ai/life-report`. Web: `/life-report`. Mobile: `LifeReportScreen`.
+- **Highest Impact Action**: Single daily recommendation with cross-domain impact projection. Derived from Pattern Oracle correlations + current trajectory deltas. Selects the one action that most improves the weakest trajectory domain. Projects impact: "+3% health, +2% productivity, +1% momentum." Shown on dashboard and embedded in morning report. Included in `/api/v1/ai/life-report` response.
+
+**Key new files:**
+- `features/trajectory/services/trajectory.service.ts`
+- `app/api/v1/trajectory/route.ts`
+- `features/ai/services/life-report.service.ts`
+- `app/api/v1/ai/life-report/route.ts`
+- `app/(dashboard)/life-report/page.tsx`
+- Mobile: `LifeReportScreen`, `TrajectoryScreen`

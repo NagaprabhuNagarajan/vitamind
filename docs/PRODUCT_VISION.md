@@ -2,18 +2,25 @@
 
 ## Vision
 
-Create an AI-powered assistant that helps people manage their daily life
-including: - Tasks - Goals - Habits - Schedule - Personal insights
+VitaMind is an **AI Life Navigation System** — the operating system for your personal life.
 
-The app acts as a **personal life operating system** where users can
-understand and optimize their productivity and lifestyle.
+Just as navigation apps guide people through cities, VitaMind guides users through their life decisions, habits, and goals.
+
+**VitaMind = Google Maps for your life.**
+
+Instead of simply tracking tasks, the system helps users understand:
+- Where their life is heading (trajectory)
+- What actions will most improve their direction (highest impact action)
+- Which habits drive the best outcomes (knowledge graph)
+- What decisions will produce the best future (simulation + decision engine)
 
 ## Core Principles
 
--   Simple daily experience
--   AI-assisted planning
--   Data-driven life insights
--   Habit forming product
+-   Life navigation over task tracking
+-   Direction over snapshots — trajectory matters more than current state
+-   AI-assisted planning and decision support
+-   Data-driven life insights from unified behavioral data
+-   Habit forming product with emotional attachment
 
 ## Target Users
 
@@ -100,3 +107,18 @@ Put skin in the game. Set a goal with a stake (donate to charity if you fail). C
 Single-purpose apps are trapped. Todoist cannot add habit tracking without becoming a different product. Habitica cannot add goal planning without alienating its gamification audience. Notion can do everything but optimizes nothing -- it has no AI that understands the relationships between your data domains.
 
 VitaMind owns the intersection. Every new feature compounds the value of existing data. The more a user tracks, the smarter every feature becomes. This creates a flywheel that no point solution can match.
+
+The Life GPS layer adds *direction* to VitaMind's existing data. Knowing your momentum score is useful. Knowing your health trajectory is declining -5% while career is rising +18% is actionable. Trajectory + navigation creates an emotional hook that static productivity tracking never can.
+
+---
+
+## Phase P — AI Life GPS Features (Next Evolution)
+
+### Life Trajectory Engine
+Per-domain directional velocity: "+18% career, -5% health, +12% learning." Computed from 14-day behavioral deltas — not a snapshot, but a direction. Shows whether each life domain is improving or declining. Feeds the Life Radar (adds trend arrows to the existing radar chart) and the Daily Life Intelligence Report.
+
+### Daily Life Intelligence Report
+A personalized morning briefing generated once per day. Combines: health summary, momentum score + trend, burnout risk, top Pattern Oracle insight, and Highest Impact Action. Becomes the daily habit trigger — the first screen users open each morning. Replaces fragmented AI insights with a single, cohesive life navigation view.
+
+### Highest Impact Action
+The single action AI recommends each day with the biggest cross-domain life impact. "30-minute workout: +3% health, +2% productivity, +1% momentum." Derived from Pattern Oracle correlations + current trajectory scores. Forces prioritization over list-making — one action beats ten suggestions.

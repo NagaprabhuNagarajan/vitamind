@@ -8,6 +8,8 @@ const CACHE_TTL: Record<InsightType, number> = {
   life_coach: 24 * 60 * 60 * 1000,        // 24 hours
   cross_domain: 6 * 60 * 60 * 1000,       // 6 hours
   knowledge_graph: 24 * 60 * 60 * 1000,   // 24 hours
+  trajectory: 24 * 60 * 60 * 1000,        // 24 hours
+  life_report: 24 * 60 * 60 * 1000,       // 24 hours
 }
 
 // Returns cached AI response if still fresh, null otherwise

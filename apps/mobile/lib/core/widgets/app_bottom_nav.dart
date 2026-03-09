@@ -309,6 +309,24 @@ class _MoreBottomSheet extends StatelessWidget {
                 },
               ),
               _MoreTile(
+                icon: Icons.trending_up_rounded,
+                label: 'Trajectory',
+                subtitle: 'Directional velocity across life domains',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.trajectory);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.article_outlined,
+                label: 'Life Report',
+                subtitle: 'Your AI morning intelligence briefing',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.lifeReport);
+                },
+              ),
+              _MoreTile(
                 icon: Icons.calendar_today_outlined,
                 label: 'Planner',
                 subtitle: 'AI-generated daily plan',
