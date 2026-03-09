@@ -1,11 +1,6 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
 import './globals.css'
-
-const ScrollProgress = dynamic(
-  () => import('@/components/ui/scroll-progress').then((m) => m.ScrollProgress),
-  { ssr: false }
-)
+import { ClientShell } from '@/components/ui/client-shell'
 
 export const metadata: Metadata = {
   title: 'VitaMind -- Intelligence for your life',
@@ -26,8 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ScrollProgress />
-        {children}
+        <ClientShell>{children}</ClientShell>
       </body>
     </html>
   )
