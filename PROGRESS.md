@@ -889,7 +889,7 @@
 | Service | Status | Notes |
 |---------|--------|-------|
 | Supabase (DB + Auth) | Active | Project: qogkvngpcmrdbrkgxbow |
-| Vercel (Web hosting) | Active | vitamind-woad.vercel.app |
+| Vercel (Web hosting) | Active | vitamind-ai.vercel.app |
 | Firebase (FCM) | Active | Project: vitamind-d72ad |
 | Sentry (Error monitoring) | Active | DSN configured in Vercel |
 | PostHog (Analytics) | Active | API key configured in Vercel |
@@ -1022,7 +1022,7 @@
 
 ## Phase 52 -- Mobile Calendar Sync/Import Fix
 
-- [x] Fixed `apps/mobile/.env` -- `API_BASE_URL` changed from `http://localhost:3003` to `https://vitamind-woad.vercel.app` (mobile was hitting localhost, unreachable on device)
+- [x] Fixed `apps/mobile/.env` -- `API_BASE_URL` changed from `http://localhost:3003` to `https://vitamind-ai.vercel.app` (mobile was hitting localhost, unreachable on device)
 - [x] Fixed `apps/web/src/lib/api/auth-guard.ts` -- `requireAuth()` now checks `Authorization: Bearer` header first, falls back to cookie session; all 37 API routes now work from mobile app without any other changes
 
 **Files modified:** 2 files

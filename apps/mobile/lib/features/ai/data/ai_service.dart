@@ -1,3 +1,4 @@
+import 'package:vitamind/core/constants/app_constants.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -25,7 +26,7 @@ class AiService {
   late final Dio _dio;
 
   AiService() {
-    final base = dotenv.env['API_BASE_URL'] ?? '';
+    final base = AppConstants.apiBaseUrl;
     _dio = Dio(BaseOptions(
       baseUrl: '$base/api/v1',
       connectTimeout: const Duration(seconds: 30),

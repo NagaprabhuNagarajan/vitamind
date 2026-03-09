@@ -1,3 +1,4 @@
+import 'package:vitamind/core/constants/app_constants.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -56,10 +57,7 @@ class SmartScheduleService {
     final session = Supabase.instance.client.auth.currentSession;
     if (session == null) throw Exception('Not authenticated');
 
-    final baseUrl = const String.fromEnvironment(
-      'API_BASE_URL',
-      defaultValue: 'https://vitamind-woad.vercel.app',
-    );
+    final baseUrl = AppConstants.apiBaseUrl;
 
     try {
       final dio = Dio();

@@ -1,3 +1,4 @@
+import 'package:vitamind/core/constants/app_constants.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -71,10 +72,7 @@ class HealthInsights {
 class HealthService {
   final String _baseUrl;
   HealthService()
-      : _baseUrl = const String.fromEnvironment(
-          'API_BASE_URL',
-          defaultValue: 'https://vitamind-woad.vercel.app',
-        );
+      : _baseUrl = AppConstants.apiBaseUrl;
 
   Future<Map<String, String>> _authHeaders() async {
     final session = Supabase.instance.client.auth.currentSession;

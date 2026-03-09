@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Alert } from '@/components/ui/alert'
-import { login, loginWithGoogle } from '@/features/auth/actions'
+import { login } from '@/features/auth/actions'
 import { LoginForm } from './login-form'
 import { GoogleButton } from './google-button'
 
@@ -45,7 +45,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {params.success && <Alert variant="success" message={params.success} />}
 
         {/* Google button */}
-        <GoogleButton action={loginWithGoogle} />
+        <GoogleButton />
 
         {/* Divider */}
         <div className="relative flex items-center gap-3">

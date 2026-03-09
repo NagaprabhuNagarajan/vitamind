@@ -1,6 +1,10 @@
 class AppConstants {
   // API
   static const String apiVersion = 'v1';
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://vitamind-ai.vercel.app',
+  );
 
   // Supabase table names
   static const String usersTable = 'users';

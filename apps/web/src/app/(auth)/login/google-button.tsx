@@ -1,16 +1,38 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Spinner } from '@/components/ui/spinner'
 
-export function GoogleButton({ action }: { action: () => Promise<void> }) {
-  const [isPending, startTransition] = useTransition()
+export function GoogleButton() {
+  const [isPending, setIsPending] = useState(false)
+
+  async function handleClick() {
+    setIsPending(true)
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      })
+      if (error) throw error
+      if (data.url) window.location.href = data.url
+    } catch {
+      setIsPending(false)
+    }
+  }
 
   return (
     <button
       type="button"
       disabled={isPending}
-      onClick={() => startTransition(() => action())}
+      onClick={handleClick}
       className="w-full flex items-center justify-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-text-primary transition-all duration-200 disabled:opacity-50"
       style={{
         background: 'rgba(255,255,255,0.06)',

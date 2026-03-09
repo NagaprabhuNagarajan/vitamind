@@ -139,7 +139,7 @@ These phases extend VitaMind toward the AI Life Intelligence Platform vision.
 
 ### Phase G -- Launch Infrastructure -- **Complete**
 
-- Vercel deployment (vitamind-woad.vercel.app)
+- Vercel deployment (vitamind-ai.vercel.app)
 - Firebase Cloud Messaging V1 (OAuth2 JWT, not Legacy)
 - Sentry error monitoring (web + mobile)
 - PostHog analytics (web + mobile)

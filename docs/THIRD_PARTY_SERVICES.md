@@ -41,7 +41,7 @@ All external services VitaMind depends on, their purpose, configuration, and cos
 
 | Detail | Value |
 |--------|-------|
-| Project URL | vitamind-woad.vercel.app |
+| Project URL | vitamind-ai.vercel.app |
 | Framework | Next.js 15 |
 | Root directory | `apps/web` |
 | Region | iad1 (US East) |
@@ -176,7 +176,7 @@ sign_up, login, logout, task_created, task_completed, goal_created, habit_logged
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` -- Same client ID (client-side, for OAuth URL)
 
 **Redirect URIs configured:**
-- `https://vitamind-woad.vercel.app/settings`
+- `https://vitamind-ai.vercel.app/settings`
 - `http://localhost:3003/settings`
 
 **API routes:**
