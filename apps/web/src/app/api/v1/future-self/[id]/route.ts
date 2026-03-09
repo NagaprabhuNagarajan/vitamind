@@ -10,7 +10,7 @@ export { OPTIONS }
 // DELETE /api/v1/future-self/:id
 export const DELETE = withLogging(withCors(withRateLimit(async (
   _request: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<Record<string, string>> },
 ) => {
   try {
     const user = await requireAuth()

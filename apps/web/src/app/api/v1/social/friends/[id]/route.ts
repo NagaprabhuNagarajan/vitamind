@@ -10,7 +10,7 @@ export { OPTIONS }
 // PUT /api/v1/social/friends/:id — accept incoming invite
 export const PUT = withLogging(withCors(withRateLimit(async (
   _request: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<Record<string, string>> },
 ) => {
   try {
     const user = await requireAuth()
@@ -25,7 +25,7 @@ export const PUT = withLogging(withCors(withRateLimit(async (
 // DELETE /api/v1/social/friends/:id — remove connection
 export const DELETE = withLogging(withCors(withRateLimit(async (
   _request: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<Record<string, string>> },
 ) => {
   try {
     const user = await requireAuth()

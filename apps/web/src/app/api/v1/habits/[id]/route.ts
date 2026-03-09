@@ -9,7 +9,7 @@ import {
 } from '@/lib/api/validation'
 import { HabitService } from '@/features/habits/services/habit.service'
 
-interface Params { params: Promise<{ id: string }> }
+interface Params { params: Promise<Record<string, string>> }
 
 export { OPTIONS }
 

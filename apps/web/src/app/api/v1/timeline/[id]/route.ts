@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 // Only manual events can be deleted — auto-generated ones are system-managed
 const DELETABLE_EVENT_TYPES = ['note', 'milestone']
 
-interface Params { params: Promise<{ id: string }> }
+interface Params { params: Promise<Record<string, string>> }
 
 export { OPTIONS }
 

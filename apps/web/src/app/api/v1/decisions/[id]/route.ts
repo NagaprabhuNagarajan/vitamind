@@ -7,7 +7,7 @@ import { DecisionEngineService } from '@/features/decisions/services/decisions.s
 
 export { OPTIONS }
 
-export const DELETE = withLogging(withCors(withRateLimit(async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
+export const DELETE = withLogging(withCors(withRateLimit(async (_request: Request, { params }: { params: Promise<Record<string, string>> }) => {
   try {
     const user = await requireAuth()
     const { id } = await params

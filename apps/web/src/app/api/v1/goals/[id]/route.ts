@@ -6,7 +6,7 @@ import { withLogging } from '@/lib/api/logger'
 import { validateString, validateDate, validateNumber } from '@/lib/api/validation'
 import { GoalService } from '@/features/goals/services/goal.service'
 
-interface Params { params: Promise<{ id: string }> }
+interface Params { params: Promise<Record<string, string>> }
 
 export { OPTIONS }
 

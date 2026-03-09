@@ -9,7 +9,7 @@ import {
 } from '@/lib/api/validation'
 import { TaskService } from '@/features/tasks/services/task.service'
 
-interface Params { params: Promise<{ id: string }> }
+interface Params { params: Promise<Record<string, string>> }
 
 export { OPTIONS }
 
