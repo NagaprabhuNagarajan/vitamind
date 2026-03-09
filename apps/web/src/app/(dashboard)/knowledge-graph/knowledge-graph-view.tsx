@@ -212,7 +212,7 @@ export function KnowledgeGraphView() {
                 </text>
                 {isHovered && node.description && (
                   <foreignObject x={-80} y={r + 6} width={160} height={40}>
-                    <div xmlns="http://www.w3.org/1999/xhtml" style={{ background: 'rgba(15,15,25,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', fontSize: 9, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+                    <div {...{ xmlns: 'http://www.w3.org/1999/xhtml' } as object} style={{ background: 'rgba(15,15,25,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', fontSize: 9, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
                       {node.description}
                     </div>
                   </foreignObject>
