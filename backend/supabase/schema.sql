@@ -890,3 +890,14 @@ ALTER TABLE public.future_messages ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users manage own future_messages" ON public.future_messages;
 CREATE POLICY "Users manage own future_messages" ON public.future_messages
   FOR ALL USING (auth.uid() = user_id);
+
+-- ── Marketing Waitlist ────────────────────────────────────────────────────────
+-- Email wait list collected from the marketing website (apps/website).
+-- No RLS needed — inserts are made server-side via service role key only.
+
+CREATE TABLE IF NOT EXISTS public.waitlist (
+  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      TEXT        UNIQUE NOT NULL,
+  source     TEXT        NOT NULL DEFAULT 'website',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

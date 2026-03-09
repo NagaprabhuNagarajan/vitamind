@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "apps/web"
+    "apps/web",
+    "apps/website"
   ],
   "scripts": {
     "dev:web": "cd apps/web && npm run dev",
     "build:web": "cd apps/web && npm run build",
+    "dev:website": "pnpm --filter @vitamind/website dev",
+    "build:website": "pnpm --filter @vitamind/website build",
     "lint": "cd apps/web && npm run lint"
   },
   "engines": {

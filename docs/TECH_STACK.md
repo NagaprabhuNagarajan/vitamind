@@ -1,6 +1,6 @@
 # Tech Stack
 
-> Last updated: 2026-03-06
+> Last updated: 2026-03-09
 
 ## Mobile App
 
@@ -10,13 +10,22 @@
 - **go_router** -- Declarative routing
 - **shared_preferences** -- Local cache with TTL
 
-## Web Dashboard
+## Web Dashboard (`apps/web`)
 
 - **Next.js 15** -- React framework with App Router, Server Components, Route Handlers
 - **React 19** -- UI library
 - **TypeScript** -- Type safety across the codebase
 - **Tailwind CSS 3** -- Utility-first styling with custom design tokens
 - **Lucide React** -- Icon library
+
+## Marketing Website (`apps/website`)
+
+- **Next.js 15** -- App Router, static pages + API route for waitlist
+- **React 19** -- UI library
+- **TypeScript** -- Type safety
+- **Tailwind CSS 3** -- Same design tokens as the dashboard
+- **Framer Motion** -- Page animations and section transitions
+- **@supabase/supabase-js** -- Waitlist email storage (service role key, no auth needed)
 
 ## Backend
 
@@ -33,7 +42,7 @@
 
 ## Hosting & Deployment
 
-- **Vercel** -- Web app hosting (auto-deploy from GitHub)
+- **Vercel** -- Web dashboard (`apps/web`) + Marketing website (`apps/website`) hosting (auto-deploy from GitHub)
 - **Supabase Cloud** -- Database + Auth + Edge Functions hosting
 
 ## Push Notifications

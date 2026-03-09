@@ -1,12 +1,12 @@
 # VitaMind -- Build Progress
 
-> Last updated: 2026-03-09
+> Last updated: 2026-03-09 | 283 features complete
 
 ## Summary
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 256   | 256       | 0           | 0       |
+| 283   | 283       | 0           | 0       |
 
 ---
 
@@ -1920,6 +1920,75 @@ interface LifeReport {
 | `apps/web/src/app/(dashboard)/life-report/life-report-view.tsx` | NEW |
 | `apps/mobile/lib/features/life_report/data/life_report_service.dart` | NEW |
 | `apps/mobile/lib/features/life_report/presentation/screens/life_report_screen.dart` | NEW |
+
+---
+
+## Phase 72 -- Marketing Website (`apps/website`)
+
+### Goal
+Standalone Next.js 15 marketing site separate from the dashboard app. Primary goal: email wait list capture for the first 1,000 private beta users.
+
+### Architecture
+
+**App:** `apps/website` (port 3010 in development, separate Vercel project for production)
+
+**Stack:** Next.js 15 + React 19 + TypeScript + Tailwind CSS (same design tokens) + Framer Motion
+
+**Wait List API:** `POST /api/waitlist` — validates email, inserts into Supabase `waitlist` table (unique constraint), returns 409 on duplicate
+
+### Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Full landing page (8 sections) |
+| `/features` | Detailed feature breakdowns |
+| `/pricing` | Free vs Pro comparison |
+| `/privacy` | Privacy policy |
+| `/terms` | Terms of service |
+
+### Homepage Sections
+1. **Hero** — Framer Motion staggered animations, mock Life Intelligence Report card
+2. **Problem** — 5 pain point cards with icons
+3. **Solution** — "Google Maps for your life" quote callout
+4. **Features** — 6-card grid (AI GPS, Momentum, Burnout Radar, Pattern Oracle, Timeline, Coach)
+5. **Product Demo** — Animated tab switcher (Dashboard / Life Map / Mobile) with SVG radar chart
+6. **How It Works** — 3-step numbered flow
+7. **Social Proof** — Private Beta stats pills
+8. **Final CTA** — Email wait list form (`id="waitlist"`)
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/website/package.json` | NEW |
+| `apps/website/next.config.ts` | NEW |
+| `apps/website/tsconfig.json` | NEW |
+| `apps/website/postcss.config.mjs` | NEW |
+| `apps/website/tailwind.config.ts` | NEW |
+| `apps/website/src/app/globals.css` | NEW |
+| `apps/website/src/app/layout.tsx` | NEW |
+| `apps/website/src/app/page.tsx` | NEW |
+| `apps/website/src/app/features/page.tsx` | NEW |
+| `apps/website/src/app/pricing/page.tsx` | NEW |
+| `apps/website/src/app/privacy/page.tsx` | NEW |
+| `apps/website/src/app/terms/page.tsx` | NEW |
+| `apps/website/src/app/api/waitlist/route.ts` | NEW |
+| `apps/website/src/components/layout/navbar.tsx` | NEW |
+| `apps/website/src/components/layout/footer.tsx` | NEW |
+| `apps/website/src/components/sections/hero.tsx` | NEW |
+| `apps/website/src/components/sections/problem.tsx` | NEW |
+| `apps/website/src/components/sections/solution.tsx` | NEW |
+| `apps/website/src/components/sections/features.tsx` | NEW |
+| `apps/website/src/components/sections/product-demo.tsx` | NEW |
+| `apps/website/src/components/sections/how-it-works.tsx` | NEW |
+| `apps/website/src/components/sections/social-proof.tsx` | NEW |
+| `apps/website/src/components/sections/final-cta.tsx` | NEW |
+| `apps/website/src/components/ui/waitlist-form.tsx` | NEW |
+| `apps/website/src/components/ui/gradient-text.tsx` | NEW |
+| `apps/website/src/components/ui/glass-card.tsx` | NEW |
+| `package.json` (root) | MODIFIED — added `apps/website` to workspaces + `dev:website`/`build:website` scripts |
+| `docs/TECH_STACK.md` | MODIFIED — added Marketing Website section |
+| `docs/FEATURES.md` | MODIFIED — added Feature #23 (Marketing Website) |
 
 ---
 

@@ -1,6 +1,6 @@
 # VitaMind -- Complete Feature List
 
-> Last updated: 2026-03-07 (Phase N: Knowledge Graph + Auto Capture; Phase O: Social + Future Self)
+> Last updated: 2026-03-09 (Phase P: AI Life GPS; Marketing Website: Landing Page + Wait List)
 > "The AI Operating System for Your Life"
 
 ---
@@ -452,6 +452,35 @@ These features evolve VitaMind from a productivity tool into an **AI Life Intell
 - Available on: Web (`/companion`) + Mobile (`CompanionScreen`)
 
 ---
+
+### 23. Marketing Website (`apps/website`) -- **Complete**
+
+- Standalone Next.js 15 marketing site at `apps/website` (separate from `apps/web` dashboard)
+- Primary goal: email wait list capture targeting first 1,000 private beta users
+- Runs on port 3010 in development; deployed to Vercel as a separate project
+
+**Pages:**
+- `/` — Full landing page (8 sections: Hero, Problem, Solution, Features, Product Demo, How It Works, Social Proof, Final CTA)
+- `/features` — Detailed breakdown of all 6 AI features
+- `/pricing` — Free vs Pro tier comparison
+- `/privacy` — Privacy policy
+- `/terms` — Terms of service
+
+**Homepage Sections:**
+- Hero with Framer Motion staggered animations, mock Life Intelligence Report preview card
+- Problem: 5 pain point cards (scattered tools, burnout, no life progress, etc.)
+- Solution: "Google Maps for your life" analogy
+- Features: 6-card grid (AI Life GPS, Momentum Score, Burnout Radar, Pattern Oracle, Life Timeline, AI Life Coach)
+- Product Demo: animated tab switcher (Dashboard / Life Map / Mobile) with pure CSS/SVG mock UI
+- How It Works: 3-step numbered flow
+- Social Proof: Private Beta stats pills
+- Final CTA: wait list email capture form
+
+**Wait List API (`POST /api/waitlist`):**
+- Validates email format client-side and server-side
+- Inserts into Supabase `waitlist` table (unique constraint)
+- Returns 409 on duplicate with friendly "already on the list" message
+- Available on: Web (marketing site only)
 
 ## API Surface
 
