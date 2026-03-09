@@ -1,6 +1,6 @@
 # VitaMind -- Complete Feature List
 
-> Last updated: 2026-03-07 (Sprint 3-4 updates + task due time, mobile calendar fix)
+> Last updated: 2026-03-07 (Phase N: Knowledge Graph + Auto Capture; Phase O: Social + Future Self)
 > "The AI Operating System for Your Life"
 
 ---
@@ -196,6 +196,62 @@ Stake-based goal commitments:
 - AI nudge messages when falling behind
 - Active, completed, and failed contract states
 
+Available on: Web + Mobile
+
+---
+
+## Phase N Features
+
+### AI Personal Knowledge Graph
+Directed influence graph built from 30 days of real habit, health, and productivity data:
+- Nodes: habits, health metrics, productivity signals (color-coded by type)
+- Edges: AI-detected directional influence relationships with strength labels
+- Keystone habit identification (highest-impact node)
+- Summary: node count, edge count, keystone badge
+- 24-hour server-side cache with force-refresh
+- SVG circular layout (web), scrollable node + edge lists (mobile)
+
+API: `GET /api/v1/knowledge-graph?force=true`
+Available on: Web + Mobile
+
+### Life Auto Capture
+Zero-friction life logging in plain English:
+- Quick Log: type any sentence → AI parses into tasks, habit logs, and health entries in one shot
+- Smart suggestions: Google Calendar upcoming events (next 2 days) + un-logged habits for today
+- One-tap import of calendar events as tasks
+- Action confirmation card showing what was created
+- Keyboard shortcut: ⌘+Enter to submit (web)
+
+API: `GET /api/v1/auto-capture` (suggestions), `POST /api/v1/auto-capture` (quick-log), `POST /api/v1/auto-capture/import`
+Available on: Web + Mobile
+
+---
+
+## Phase O Features
+
+### Social Accountability Layer
+Bidirectional friend graph with accountability feed:
+- Send friend invites by email address
+- Accept / decline incoming requests
+- View friends' daily activity: habit count, task count, momentum score
+- Streak highlights from friend data
+- Accepted friends list, sent pending invites list
+- Remove connections at any time
+- Direction-aware connection model (requester / addressee + status: pending/accepted/blocked)
+
+API: `GET/POST /api/v1/social/friends`, `PUT /api/v1/social/friends/[id]` (accept), `DELETE /api/v1/social/friends/[id]` (remove), `GET /api/v1/social/feed`
+Available on: Web + Mobile
+
+### Future Self
+Time-capsule messaging with AI behavioral forecasting:
+- Write a personal message to be sealed until a chosen future date
+- AI generates a behavioral forecast at write time using 30-day habit/task/goal data (200 tokens, warm + honest tone)
+- Sealed messages show a lock icon with days remaining
+- Arrived messages (past delivery date) expand to reveal the original message + AI forecast from the past
+- Delete messages before or after arrival
+- Compose UI with inline date picker (web calendar popover / mobile date picker)
+
+API: `GET /api/v1/future-self`, `POST /api/v1/future-self`, `DELETE /api/v1/future-self/[id]`
 Available on: Web + Mobile
 
 ---

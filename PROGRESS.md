@@ -1,12 +1,12 @@
 # VitaMind -- Build Progress
 
-> Last updated: 2026-03-07
+> Last updated: 2026-03-09
 
 ## Summary
 
 | Total | Completed | In Progress | Pending |
 |-------|-----------|-------------|---------|
-| 221   | 221       | 0           | 0       |
+| 242   | 242       | 0           | 0       |
 
 ---
 
@@ -1673,6 +1673,129 @@ Two capabilities in one feature: (1) **Smart Suggestions** — surface actionabl
 
 ---
 
+## Phase 68 -- Phase O (Part 1): Social Accountability Layer
+
+### Goal
+Bidirectional friend graph that lets users connect with friends, send/accept invites by email, and view a daily activity feed showing how friends are progressing on habits and tasks.
+
+### Architecture
+
+**DB Tables (added to `backend/supabase/schema.sql`):**
+- `social_connections(id, requester_id, addressee_id, status: pending|accepted|blocked, created_at, updated_at)` — unique constraint on (requester_id, addressee_id), self-reference check; RLS: visible to requester or addressee
+- `future_messages(id, user_id, message, deliver_at DATE, delivered BOOL, ai_forecast TEXT, created_at)` — also added here for co-location with Phase O DB work; RLS: user sees only own messages
+
+**Service:** `apps/web/src/features/social/services/social.service.ts`
+
+`SocialService`:
+- `sendInvite(requesterId, email)` — lookup addressee by email in `public.users`, check for existing connection (duplicate/reverse), insert pending connection
+- `acceptInvite(userId, connectionId)` — update status to `'accepted'` where addressee_id = userId
+- `removeConnection(userId, connectionId)` — delete where requester or addressee = userId
+- `getConnections(userId)` — join `social_connections` with `users` table twice (as requester + addressee), compute `direction: 'incoming'|'outgoing'`, return `SocialConnection[]`
+- `getFriendFeed(userId)` — for each accepted friend: parallel fetch today's `habit_logs` (completed), `tasks` (completed), `momentum_snapshots` (today); compute `streak_highlight` from longest active streak; return `FriendActivity[]` sorted by total activity desc
+
+**Types:**
+```ts
+interface SocialConnection { id, friend_id, friend_name, friend_email, status, direction }
+interface FriendActivity { friend_id, friend_name, habits_today, tasks_today, momentum_score?, streak_highlight? }
+```
+
+**API:**
+- `GET /api/v1/social/friends` — list all connections (`RateLimitTier.standard`)
+- `POST /api/v1/social/friends` — send invite by email (`RateLimitTier.standard`)
+- `PUT /api/v1/social/friends/[id]` — accept incoming invite
+- `DELETE /api/v1/social/friends/[id]` — remove connection
+- `GET /api/v1/social/feed` — today's friend activity feed
+
+### Web UI: `/social`
+
+**Files:** `apps/web/src/app/(dashboard)/social/page.tsx` + `social-view.tsx`
+
+- Invite card: email input + "Invite" button; shows success (green) / error (red) message
+- Incoming friend requests section: avatar initial, name, email, "Accept" button + remove (trash) button
+- Friends Today feed: purple avatars, streak highlight, momentum score badge, habits/tasks chip row
+- All Friends list: accepted connections with remove button
+- Sent Invites list: pending outgoing shown at 60% opacity with "Awaiting response" label
+
+**Bug fix:** `apps/web/src/lib/supabase/middleware.ts` — added `/social` and `/future-self` to `isProtectedRoute` check so unauthenticated users are redirected to `/login` rather than seeing blank pages with API 401 errors.
+
+### Mobile: `SocialScreen`
+
+**Files:**
+- `apps/mobile/lib/features/social/data/social_service.dart` — full CRUD + feed; models: `SocialConnection`, `FriendActivity`, `InviteResult`
+- `apps/mobile/lib/features/social/presentation/screens/social_screen.dart` — invite card (email TextField + Send button), incoming requests (Accept / close buttons), friend activity feed (habit + task chips, momentum score), accepted friends list, sent pending list
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `backend/supabase/schema.sql` | MODIFIED — added `social_connections` + `future_messages` tables + RLS |
+| `apps/web/src/features/social/services/social.service.ts` | NEW |
+| `apps/web/src/app/api/v1/social/friends/route.ts` | NEW — GET + POST |
+| `apps/web/src/app/api/v1/social/friends/[id]/route.ts` | NEW — PUT + DELETE |
+| `apps/web/src/app/api/v1/social/feed/route.ts` | NEW — GET |
+| `apps/web/src/app/(dashboard)/social/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/social/social-view.tsx` | NEW |
+| `apps/mobile/lib/features/social/data/social_service.dart` | NEW |
+| `apps/mobile/lib/features/social/presentation/screens/social_screen.dart` | NEW |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Social (`Users` icon) |
+| `apps/web/src/lib/supabase/middleware.ts` | MODIFIED — added `/social` + `/future-self` to isProtectedRoute |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — `Routes.social` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Social tile |
+
+---
+
+## Phase 69 -- Phase O (Part 2): Future Self
+
+### Goal
+Time-capsule messaging: write a personal message to be sealed until a chosen date. At write time, AI generates a behavioral forecast using 30 days of habit/task/goal data. Arrived messages expand to show the original message + the AI prediction from the past.
+
+### Architecture
+
+**Service:** `apps/web/src/features/future-self/services/future-self.service.ts`
+
+`FutureSelfService`:
+- `getMessages(userId)` — fetch all `future_messages` ordered by `deliver_at ASC`; compute `days_until` + `is_past` flag
+- `createMessage(userId, message, deliverAt)` — fetch 30-day behavioral context (active habits + completions, task completion rate, active goals progress), call `generateForecast()`, insert row to `future_messages` with `ai_forecast`
+- `deleteMessage(userId, messageId)` — delete with user ownership check
+- `generateForecast(message, monthsAhead, habits, habitCompletions, taskRate, goals)` — 200-token warm + honest 2-3 sentence prediction using `complete()` at `temperature: 0.7`
+
+**API:**
+- `GET /api/v1/future-self` — list all messages (`RateLimitTier.standard`)
+- `POST /api/v1/future-self` — create + seal message (`RateLimitTier.ai`)
+- `DELETE /api/v1/future-self/[id]` — delete message
+
+### Web UI: `/future-self`
+
+**Files:** `apps/web/src/app/(dashboard)/future-self/page.tsx` + `future-self-view.tsx`
+
+- Compose card: textarea for message, date picker (calendar popover), "Seal & Send" button (hourglass icon)
+- Arrived messages (is_past=true): expandable card showing original message + purple AI forecast box ("AI Forecast at Time of Writing")
+- Sealed messages (is_past=false): lock icon, truncated preview, deliver date + days remaining
+- Delete button on both arrived and sealed messages
+
+### Mobile: `FutureSelfScreen`
+
+**Files:**
+- `apps/mobile/lib/features/future_self/data/future_self_service.dart` — `getMessages()`, `createMessage(message, deliverAt)`, `deleteMessage(id)`; model: `FutureMessage`
+- `apps/mobile/lib/features/future_self/presentation/screens/future_self_screen.dart` — compose card (4-line TextField + GestureDetector date row → `showDatePicker` + "Seal & Send" button), arrived messages (expandable with AI forecast box), sealed tiles (lock icon + days remaining)
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `apps/web/src/features/future-self/services/future-self.service.ts` | NEW |
+| `apps/web/src/app/api/v1/future-self/route.ts` | NEW — GET + POST |
+| `apps/web/src/app/api/v1/future-self/[id]/route.ts` | NEW — DELETE |
+| `apps/web/src/app/(dashboard)/future-self/page.tsx` | NEW |
+| `apps/web/src/app/(dashboard)/future-self/future-self-view.tsx` | NEW |
+| `apps/mobile/lib/features/future_self/data/future_self_service.dart` | NEW |
+| `apps/mobile/lib/features/future_self/presentation/screens/future_self_screen.dart` | NEW |
+| `apps/web/src/components/layout/sidebar.tsx` | MODIFIED — added Future Self (`Hourglass` icon) |
+| `apps/mobile/lib/core/router/app_router.dart` | MODIFIED — `Routes.futureSelf` + GoRoute |
+| `apps/mobile/lib/core/widgets/app_bottom_nav.dart` | MODIFIED — Future Self tile |
+
+---
+
 ## Backlog -- Pending Items
 
 ### Requires Manual Action
@@ -1695,6 +1818,4 @@ Two capabilities in one feature: (1) **Smart Suggestions** — surface actionabl
 | 1 | Phase J | Razorpay integration (UPI, net banking, cards) | Not started |
 | 2 | Phase J | Pro tier feature gating | Not started |
 | 3 | Phase J | Team tier: shared accountability contracts | Not started |
-| 4 | Phase O | Social Accountability Layer | Not started |
-| 5 | Phase O | Future Self (time capsule + AI predictions) | Not started |
-| 6 | -- | Apple Calendar sync | Not started |
+| 4 | -- | Apple Calendar sync | Not started |

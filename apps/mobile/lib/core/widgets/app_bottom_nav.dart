@@ -291,6 +291,24 @@ class _MoreBottomSheet extends StatelessWidget {
                 },
               ),
               _MoreTile(
+                icon: Icons.people_outline_rounded,
+                label: 'Social',
+                subtitle: 'Friends, activity feed & accountability',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.social);
+                },
+              ),
+              _MoreTile(
+                icon: Icons.hourglass_bottom_outlined,
+                label: 'Future Self',
+                subtitle: 'Sealed time-capsule messages to yourself',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  parentContext.go(Routes.futureSelf);
+                },
+              ),
+              _MoreTile(
                 icon: Icons.calendar_today_outlined,
                 label: 'Planner',
                 subtitle: 'AI-generated daily plan',

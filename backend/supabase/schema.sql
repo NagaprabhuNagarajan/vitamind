@@ -846,3 +846,47 @@ ALTER TABLE public.decisions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users manage own decisions" ON public.decisions;
 CREATE POLICY "Users manage own decisions" ON public.decisions
   FOR ALL USING (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Phase O: Social Accountability Layer + Future Self
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ── Social Connections ────────────────────────────────────────────────────────
+-- Bidirectional friend graph. A connection exists once per pair (requester < addressee).
+-- status: 'pending' → 'accepted' | 'blocked'
+
+CREATE TABLE IF NOT EXISTS public.social_connections (
+  id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  requester_id  UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  addressee_id  UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  status        TEXT        NOT NULL DEFAULT 'pending'
+                            CHECK (status IN ('pending', 'accepted', 'blocked')),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (requester_id, addressee_id),
+  CHECK (requester_id <> addressee_id)
+);
+
+ALTER TABLE public.social_connections ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own social_connections" ON public.social_connections;
+CREATE POLICY "Users manage own social_connections" ON public.social_connections
+  FOR ALL USING (auth.uid() = requester_id OR auth.uid() = addressee_id);
+
+-- ── Future Self Messages ──────────────────────────────────────────────────────
+-- Time-capsule messages from the user to their future self.
+-- ai_forecast: AI-generated prediction about what life may look like by deliver_at date.
+
+CREATE TABLE IF NOT EXISTS public.future_messages (
+  id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  message       TEXT        NOT NULL,
+  deliver_at    DATE        NOT NULL,
+  delivered     BOOLEAN     NOT NULL DEFAULT FALSE,
+  ai_forecast   TEXT,                             -- AI prediction generated at write time
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.future_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own future_messages" ON public.future_messages;
+CREATE POLICY "Users manage own future_messages" ON public.future_messages
+  FOR ALL USING (auth.uid() = user_id);

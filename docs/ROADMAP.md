@@ -199,7 +199,11 @@ These features evolve VitaMind from a productivity tool into an AI Life Intellig
 
 **Key files**: `features/knowledge-graph/services/knowledge-graph.service.ts`, `features/auto-capture/services/auto-capture.service.ts`, `app/api/v1/knowledge-graph/`, `app/api/v1/auto-capture/`
 
-### Phase O -- Social + Future Self
+### Phase O -- Social Accountability Layer + Future Self -- **Complete**
 
-- **Social Accountability Layer**: Share goals, habits, and focus sessions with friends or mentors. Friendly competition, public progress boards. (e.g., "Your friend completed 6 habits today.")
-- **Future Self**: Send messages to future self, AI predictions based on current behavior, reflection reminders. (e.g., "If current habits continue, productivity may increase 23% next year.")
+- **Social Accountability Layer** ✅: Bidirectional friend graph (`social_connections` table with requester/addressee + status). Send invites by email, accept/decline incoming requests, view friends' daily habit + task counts in an activity feed. API: `GET/POST /api/v1/social/friends`, `PUT/DELETE /api/v1/social/friends/[id]`, `GET /api/v1/social/feed`. Web: `/social`. Mobile: `SocialScreen`.
+- **Future Self** ✅: Time-capsule messages sealed for a future date. AI generates a personalized behavioral forecast at write time using 30 days of habit/task/goal data. Arrived messages expand to show the original forecast. API: `GET/POST /api/v1/future-self`, `DELETE /api/v1/future-self/[id]`. Web: `/future-self`. Mobile: `FutureSelfScreen`.
+
+**Migrations**: `social_connections`, `future_messages` tables added to `backend/supabase/schema.sql`
+
+**Key files**: `features/social/services/social.service.ts`, `features/future-self/services/future-self.service.ts`, `app/api/v1/social/`, `app/api/v1/future-self/`

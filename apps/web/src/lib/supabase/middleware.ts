@@ -36,7 +36,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/goals') ||
     request.nextUrl.pathname.startsWith('/habits') ||
     request.nextUrl.pathname.startsWith('/planner') ||
-    request.nextUrl.pathname.startsWith('/ai')
+    request.nextUrl.pathname.startsWith('/ai') ||
+    request.nextUrl.pathname.startsWith('/social') ||
+    request.nextUrl.pathname.startsWith('/future-self')
 
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone()

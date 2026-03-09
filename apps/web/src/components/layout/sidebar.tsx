@@ -28,6 +28,8 @@ import {
   FlaskConical,
   Network,
   ScanSearch,
+  Users,
+  Hourglass,
 } from 'lucide-react'
 import { LogoutDialog } from './logout-dialog'
 
@@ -54,6 +56,8 @@ const NAV_ITEMS = [
   { href: '/life-simulation',    label: 'Life Sim',       icon: FlaskConical },
   { href: '/knowledge-graph',    label: 'Knowledge Graph', icon: Network },
   { href: '/auto-capture',       label: 'Auto Capture',   icon: ScanSearch },
+  { href: '/social',             label: 'Social',         icon: Users },
+  { href: '/future-self',        label: 'Future Self',    icon: Hourglass },
   { href: '/settings',           label: 'Settings',       icon: Settings },
 ]
 
