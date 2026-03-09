@@ -46,15 +46,15 @@ export class LifeReportService {
       trajectoryResult,
     ] = await Promise.all([
       supabase.from('users').select('name').eq('id', userId).single(),
-      supabase
-        .from('health_entries')
-        .select('sleep_hours, energy_level, mood, notes')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
-        .then((r) => r)
-        .catch(() => ({ data: null })),
+      Promise.resolve(
+        supabase
+          .from('health_entries')
+          .select('sleep_hours, energy_level, mood, notes')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single(),
+      ).catch(() => ({ data: null })),
       MomentumService.getCurrentScore(userId).catch(() => null),
       MomentumService.getHistory(userId, 7).catch(() => []),
       PatternOracleService.getInsights(userId).catch(() => null),
