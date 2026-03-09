@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import './globals.css'
-import { ScrollProgress } from '@/components/ui/scroll-progress'
+
+const ScrollProgress = dynamic(
+  () => import('@/components/ui/scroll-progress').then((m) => m.ScrollProgress),
+  { ssr: false }
+)
 
 export const metadata: Metadata = {
   title: 'VitaMind -- Intelligence for your life',
