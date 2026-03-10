@@ -205,6 +205,62 @@ export function Hero() {
             </a>
           </div>
 
+          {/* Mini metrics preview */}
+          <motion.div
+            className="mt-14 w-full max-w-2xl"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.6, ease: 'easeOut' }}
+          >
+            {/* Label */}
+            <p className="text-xs text-gray-600 uppercase tracking-widest mb-4 font-medium">
+              Your life at a glance
+            </p>
+
+            {/* Metric cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Momentum',  value: '87',   unit: 'pts', delta: '+12', color: '#6366F1', delay: 0 },
+                { label: 'Sleep',     value: '7.5',  unit: 'hrs', delta: '+0.5h', color: '#A855F7', delay: 0.07 },
+                { label: 'Focus',     value: '94',   unit: '%',   delta: '▲ High', color: '#06B6D4', delay: 0.14 },
+                { label: 'Goals',     value: '3/5',  unit: '',    delta: 'on track', color: '#22C55E', delay: 0.21 },
+              ].map((m) => (
+                <motion.div
+                  key={m.label}
+                  initial={{ opacity: 0, scale: 0.88, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.8 + m.delay, ease: 'easeOut' }}
+                  className="relative rounded-xl px-4 py-3.5 text-left overflow-hidden"
+                  style={{
+                    background: 'rgba(15,17,23,0.7)',
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${m.color}22`,
+                    boxShadow: `0 0 20px ${m.color}10`,
+                  }}
+                >
+                  {/* Top glow line */}
+                  <div
+                    className="absolute top-0 left-4 right-4 h-px"
+                    style={{ background: `linear-gradient(90deg, transparent, ${m.color}60, transparent)` }}
+                  />
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1.5">{m.label}</p>
+                  <div className="flex items-end gap-1.5">
+                    <span className="text-2xl font-bold text-white leading-none">{m.value}</span>
+                    {m.unit && <span className="text-xs text-gray-500 mb-0.5">{m.unit}</span>}
+                  </div>
+                  <p className="mt-1.5 text-[10px] font-medium" style={{ color: m.color }}>{m.delta}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Divider hint */}
+            <div className="mt-5 flex items-center gap-3">
+              <div className="flex-1 h-px bg-white/[0.04]" />
+              <span className="text-[10px] text-gray-700 uppercase tracking-widest">AI-powered life intelligence</span>
+              <div className="flex-1 h-px bg-white/[0.04]" />
+            </div>
+          </motion.div>
+
           {/* Scroll hint */}
           <motion.div
             className="absolute bottom-10 flex flex-col items-center gap-2 text-gray-600 text-xs"
