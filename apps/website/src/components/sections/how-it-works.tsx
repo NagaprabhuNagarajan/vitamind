@@ -80,11 +80,12 @@ export function HowItWorks() {
               <motion.div
                 className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary text-white font-bold text-lg mb-5"
                 initial={{ scale: 0, opacity: 0, rotateY: -180 }}
-                whileInView={{ scale: [0, 1.2, 1], opacity: 1, rotateY: 0 }}
+                whileInView={{ scale: 1, opacity: 1, rotateY: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{
-                  type: 'spring',
-                  duration: 0.8,
+                  type: 'tween',
+                  duration: 0.6,
+                  ease: [0.34, 1.56, 0.64, 1],
                   delay: index * 0.2,
                 }}
                 style={{ transformStyle: 'preserve-3d' }}

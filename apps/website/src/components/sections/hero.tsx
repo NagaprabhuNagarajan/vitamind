@@ -94,15 +94,15 @@ function Particles() {
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Scroll progress across the full 500vh container
+  // Scroll progress across the full 500vh container — spring for smooth easing
   const { scrollYProgress } = useScroll({ target: containerRef })
-  const smooth = useSpring(scrollYProgress, { stiffness: 60, damping: 20, restDelta: 0.0005 })
+  const smooth = useSpring(scrollYProgress, { stiffness: 80, damping: 25, restDelta: 0.001 })
 
   // ── Phase 1: Intro text (0 → 0.22) ────────────────────────────────────────
-  const textOpacity   = useTransform(smooth, [0, 0.06, 0.18, 0.26], [0, 1, 1, 0])
-  const textY         = useTransform(smooth, [0, 0.06, 0.26],        [60, 0, -80])
-  const textScale     = useTransform(smooth, [0, 0.06, 0.26],        [0.94, 1, 1.04])
-  const badgeOpacity  = useTransform(smooth, [0, 0.04, 0.18, 0.24],  [0, 1, 1, 0])
+  const textOpacity   = useTransform(smooth, [0, 0.18, 0.26], [1, 1, 0])
+  const textY         = useTransform(smooth, [0, 0.18, 0.26], [0, 0, -80])
+  const textScale     = useTransform(smooth, [0, 0.18, 0.26], [1, 1, 1.04])
+  const badgeOpacity  = useTransform(smooth, [0, 0.18, 0.24], [1, 1, 0])
 
   // ── Phase 2: Dashboard rise (0.22 → 0.50) ─────────────────────────────────
   const dashOpacity   = useTransform(smooth, [0.18, 0.30, 0.70, 0.82], [0, 1, 1, 0])
@@ -171,7 +171,7 @@ export function Hero() {
           className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6 text-center"
         >
           {/* Badge */}
-          <motion.div style={{ opacity: badgeOpacity }} className="mb-8">
+          <motion.div style={{ opacity: badgeOpacity }} className="mt-8 mb-8">
             <span className="shimmer-card inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-5 py-2 text-sm text-indigo-300 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
               Introducing AI Life GPS
